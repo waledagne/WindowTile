@@ -28,6 +28,9 @@ public partial class MainWindow : Window
                 WindowAction.Maximize => MaximizeStatus, WindowAction.Restore => RestoreStatus,
                 WindowAction.TopLeft => TopLeftStatus, WindowAction.TopRight => TopRightStatus,
                 WindowAction.BottomLeft => BottomLeftStatus, WindowAction.BottomRight => BottomRightStatus,
+                WindowAction.LeftThird => LeftThirdStatus, WindowAction.CenterThird => CenterThirdStatus,
+                WindowAction.RightThird => RightThirdStatus, WindowAction.LeftTwoThirds => LeftTwoThirdsStatus,
+                WindowAction.RightTwoThirds => RightTwoThirdsStatus,
                 _ => throw new ArgumentOutOfRangeException(nameof(statuses))
             };
             label.Text = !enabled ? "Paused" : status.Registered ? "Ready" : $"Unavailable · error {status.Error}";

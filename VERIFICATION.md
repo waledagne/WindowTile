@@ -2,6 +2,17 @@
 
 Release build: KeyTile 0.1.0, C# / WPF, net10.0-windows.
 
+## Thirds increment
+
+- `Build.ps1` built and published with zero warnings/errors; all 105 checks passed.
+- Added a Thirds tab with left, center, and right columns (Ctrl + Alt + 5–7) plus left and right two-thirds tiles (Ctrl + Alt + 8–9), using the number row.
+- Geometry checks cover widths divisible by three and both remainder cases, negative monitor origins, and portrait work areas. The three columns partition the full work area; each wider tile aligns with its complementary third.
+- Native WPF and WinForms fixtures fit all five tiles. A sequence across thirds, corners, halves, and maximize restores the original placement. Third and two-thirds commands handle initially maximized windows and restore their maximized state and normal bounds.
+- Third and two-thirds shortcut conflicts leave the other twelve shortcuts available. Pause and disposal release the new shortcuts alongside existing ones.
+- Fixed-size windows reject column and two-thirds commands.
+- Visually inspected the published Thirds tab and tested all five shortcuts through Windows Computer Use. Native measurements confirmed 640 × 1032 columns at x = 0, 640, and 1280, plus 1280 × 1032 wider tiles at x = 0 and 640, on a 1920 × 1032 work area. Ctrl + Alt + Down restored the original (180, 110), 620 × 400 placement.
+- The Thirds tab displays Paused for all five rows when paused. An independent probe acquired all thirteen shortcuts while paused and confirmed all thirteen were owned by KeyTile after resume.
+
 ## Corners increment
 
 - `Build.ps1` built and published with zero warnings/errors; all 61 checks passed.

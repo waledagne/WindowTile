@@ -17,6 +17,8 @@ internal static class Program
     private static int _passed;
     private static readonly WindowAction[] Corners =
         [WindowAction.TopLeft, WindowAction.TopRight, WindowAction.BottomLeft, WindowAction.BottomRight];
+    private static readonly WindowAction[] Thirds =
+        [WindowAction.LeftThird, WindowAction.CenterThird, WindowAction.RightThird, WindowAction.LeftTwoThirds, WindowAction.RightTwoThirds];
     [STAThread]
     private static int Main(string[] args)
     {
@@ -64,7 +66,7 @@ internal static class Program
                 ResizeMode = args.Contains("--fixed") ? ResizeMode.NoResize : ResizeMode.CanResize,
                 Content = new TextBlock
                 {
-                    Text = "KeyTile test window\n\nCtrl + Alt + Left / Right: snap\nCtrl + Alt + 1 / 2 / 3 / 4: corners\nCtrl + Alt + Up: maximize\nCtrl + Alt + Down: restore",
+                    Text = "KeyTile test window\n\nCtrl + Alt + Left / Right: snap\nCtrl + Alt + 1 / 2 / 3 / 4: corners\nCtrl + Alt + 5 / 6 / 7 / 8 / 9: thirds\nCtrl + Alt + Up: maximize\nCtrl + Alt + Down: restore",
                     Margin = new Thickness(30), FontSize = 20, TextWrapping = TextWrapping.Wrap
                 }
             };
@@ -74,6 +76,7 @@ internal static class Program
         try
         {
             TestGeometry();
+            TestThirdGeometry();
             TestHotkeyLifecycle();
             RunNativeTestsAsync().GetAwaiter().GetResult();
             Console.WriteLine($"PASS: {_passed} checks completed.");
@@ -103,6 +106,30 @@ internal static class Program
         }
     }
 
+    private static void TestThirdGeometry()
+    {
+        foreach (Rect work in new[] { new Rect(0, 0, 1920, 1040), new Rect(0, 0, 1921, 1040),
+            new Rect(-1922, -200, 0, 881), new Rect(40, 70, 1121, 1991) })
+        {
+            Rect left = WindowManager.TileBounds(work, WindowAction.LeftThird);
+            Rect center = WindowManager.TileBounds(work, WindowAction.CenterThird);
+            Rect right = WindowManager.TileBounds(work, WindowAction.RightThird);
+            Check(left.Left == work.Left && left.Right == center.Left && center.Right == right.Left && right.Right == work.Right
+                && left.Width > 0 && center.Width > 0 && right.Width > 0
+                && Math.Abs(left.Width - center.Width) <= 1 && Math.Abs(center.Width - right.Width) <= 1
+                && Math.Abs(left.Width - right.Width) <= 1
+                && new[] { left, center, right }.All(r => r.Top == work.Top && r.Bottom == work.Bottom),
+                $"Three columns cover the work area evenly without gaps or overlap: {work}");
+            Rect leftWide = WindowManager.TileBounds(work, WindowAction.LeftTwoThirds);
+            Rect rightWide = WindowManager.TileBounds(work, WindowAction.RightTwoThirds);
+            Check(leftWide.Left == left.Left && leftWide.Right == center.Right && leftWide.Right == right.Left
+                && rightWide.Left == center.Left && rightWide.Left == left.Right && rightWide.Right == right.Right
+                && leftWide.Top == work.Top && rightWide.Top == work.Top
+                && leftWide.Bottom == work.Bottom && rightWide.Bottom == work.Bottom,
+                $"Two-thirds tiles match adjacent columns and their complementary third: {work}");
+        }
+    }
+
     private static void TestHotkeyLifecycle()
     {
         using var blocker = new HwndSource(new HwndSourceParameters("KeyTile test blocker") { ParentWindow = new nint(-3) });
@@ -125,7 +152,7 @@ internal static class Program
             var statuses = manager.SetEnabled(true);
             Check(!statuses.Single(s => s.Binding.Action == WindowAction.TopLeft).Registered
                 && statuses.Where(s => s.Binding.Action != WindowAction.TopLeft).All(s => s.Registered),
-                "Corner conflict is isolated from the other seven shortcuts");
+                "Corner conflict is isolated from the other shortcuts");
             manager.SetEnabled(false);
             foreach (HotkeyBinding binding in HotkeyManager.Bindings.Where(b => b.Action != WindowAction.TopLeft))
             {
@@ -135,7 +162,21 @@ internal static class Program
             }
         }
         finally { UnregisterHotKey(blocker.Handle, 45); }
-        using (var manager = new HotkeyManager()) Check(manager.SetEnabled(true).All(s => s.Registered), "Resume acquires all eight shortcuts");
+        foreach (WindowAction action in new[] { WindowAction.CenterThird, WindowAction.RightTwoThirds })
+        {
+            HotkeyBinding binding = HotkeyManager.Bindings.Single(b => b.Action == action);
+            Check(RegisterHotKey(blocker.Handle, 47, ModControl | ModAlt | ModNoRepeat, binding.Key), $"Reserve {action} for conflict test");
+            try
+            {
+                using var manager = new HotkeyManager();
+                var statuses = manager.SetEnabled(true);
+                Check(!statuses.Single(s => s.Binding.Action == action).Registered
+                    && statuses.Where(s => s.Binding.Action != action).All(s => s.Registered),
+                    $"{action} conflict leaves the other twelve shortcuts available");
+            }
+            finally { UnregisterHotKey(blocker.Handle, 47); }
+        }
+        using (var manager = new HotkeyManager()) Check(manager.SetEnabled(true).All(s => s.Registered), "Resume acquires all thirteen shortcuts");
         foreach (HotkeyBinding binding in HotkeyManager.Bindings)
         {
             bool acquired = RegisterHotKey(blocker.Handle, 44, ModControl | ModAlt | ModNoRepeat, binding.Key);
@@ -186,6 +227,43 @@ internal static class Program
                 && WindowManager.Near(Placement(b).NormalPosition, originalB.NormalPosition),
                 "Corner sequence restores the second window independently");
 
+            foreach (WindowAction third in Thirds)
+            {
+                Check((await manager.ExecuteAsync(third, a)).Success
+                    && WindowManager.Near(WindowManager.GetVisibleBounds(a), WindowManager.TileBounds(monitor.Work, third)),
+                    $"WPF visible frame matches {third} tile");
+                var secondMonitor = MonitorInfo.Create();
+                Check(GetMonitorInfo(MonitorFromWindow(b, MonitorDefaultToNearest), ref secondMonitor)
+                    && (await manager.ExecuteAsync(third, b)).Success
+                    && WindowManager.Near(WindowManager.GetVisibleBounds(b), WindowManager.TileBounds(secondMonitor.Work, third)),
+                    $"WinForms visible frame matches {third} tile");
+            }
+            Check((await manager.ExecuteAsync(WindowAction.TopLeft, a)).Success
+                && (await manager.ExecuteAsync(WindowAction.Left, a)).Success
+                && (await manager.ExecuteAsync(WindowAction.Maximize, a)).Success
+                && (await manager.ExecuteAsync(WindowAction.CenterThird, a)).Success
+                && (await manager.ExecuteAsync(WindowAction.Restore, a)).Success
+                && !IsZoomed(a) && WindowManager.Near(Placement(a).NormalPosition, originalA.NormalPosition),
+                "Thirds, corners, half, maximize, third, restore retain the original position");
+            Check((await manager.ExecuteAsync(WindowAction.Restore, b)).Success
+                && WindowManager.Near(Placement(b).NormalPosition, originalB.NormalPosition),
+                "Thirds sequence restores the second window independently");
+
+            foreach (WindowAction third in new[] { WindowAction.CenterThird, WindowAction.LeftTwoThirds })
+            {
+                Check(ShowWindowAsync(a, SwMaximize), $"Set initial maximized state before {third}");
+                await UntilAsync(() => IsZoomed(a));
+                await Task.Delay(150);
+                Check((await manager.ExecuteAsync(third, a)).Success && !IsZoomed(a)
+                    && WindowManager.Near(WindowManager.GetVisibleBounds(a), WindowManager.TileBounds(monitor.Work, third)),
+                    $"{third} snaps an initially maximized window");
+                Check((await manager.ExecuteAsync(WindowAction.Restore, a)).Success && IsZoomed(a)
+                    && WindowManager.Near(Placement(a).NormalPosition, originalA.NormalPosition),
+                    $"Restore after {third} preserves the initial maximized state and normal bounds");
+                Check((await manager.ExecuteAsync(WindowAction.Restore, a)).Success && !IsZoomed(a),
+                    $"Second restore after {third} unmaximizes without a snapshot");
+            }
+
             Check(ShowWindowAsync(a, SwMaximize), "Set initial maximized state");
             await UntilAsync(() => IsZoomed(a));
             await Task.Delay(150);
@@ -200,6 +278,8 @@ internal static class Program
             Check((await manager.ExecuteAsync(WindowAction.Restore, a)).Success, "First window still has its snapshot");
             Check(!(await manager.ExecuteAsync(WindowAction.Left, fixedHandle)).Success, "Fixed-size window is rejected");
             Check(!(await manager.ExecuteAsync(WindowAction.TopLeft, fixedHandle)).Success, "Fixed-size window rejects corner snapping");
+            Check(!(await manager.ExecuteAsync(WindowAction.CenterThird, fixedHandle)).Success, "Fixed-size window rejects column snapping");
+            Check(!(await manager.ExecuteAsync(WindowAction.LeftTwoThirds, fixedHandle)).Success, "Fixed-size window rejects two-thirds snapping");
             Check(!(await manager.ExecuteAsync(WindowAction.Left, 0)).Success, "Invalid target is rejected");
             first.Kill(); await first.WaitForExitAsync();
             Check(!(await manager.ExecuteAsync(WindowAction.Restore, a)).Success, "Closed window is rejected without crashing");

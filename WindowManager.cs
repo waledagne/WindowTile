@@ -9,7 +9,11 @@ using static KeyTile.NativeMethods;
 
 namespace KeyTile;
 
-internal enum WindowAction { Left, Right, Maximize, Restore, TopLeft, TopRight, BottomLeft, BottomRight }
+internal enum WindowAction
+{
+    Left, Right, Maximize, Restore, TopLeft, TopRight, BottomLeft, BottomRight,
+    LeftThird, CenterThird, RightThird, LeftTwoThirds, RightTwoThirds
+}
 internal readonly record struct CommandResult(bool Success, string Message);
 
 internal sealed class WindowManager
@@ -28,11 +32,19 @@ internal sealed class WindowManager
     {
         Rect half = Half(work, action is WindowAction.Right or WindowAction.TopRight or WindowAction.BottomRight);
         int middle = work.Top + work.Height / 2;
+        // Use shared boundaries so columns and wider tiles align at every monitor width.
+        int firstThird = work.Left + work.Width / 3;
+        int secondThird = work.Left + (int)((long)work.Width * 2 / 3);
         return action switch
         {
             WindowAction.Left or WindowAction.Right => half,
             WindowAction.TopLeft or WindowAction.TopRight => new(half.Left, work.Top, half.Right, middle),
             WindowAction.BottomLeft or WindowAction.BottomRight => new(half.Left, middle, half.Right, work.Bottom),
+            WindowAction.LeftThird => new(work.Left, work.Top, firstThird, work.Bottom),
+            WindowAction.CenterThird => new(firstThird, work.Top, secondThird, work.Bottom),
+            WindowAction.RightThird => new(secondThird, work.Top, work.Right, work.Bottom),
+            WindowAction.LeftTwoThirds => new(work.Left, work.Top, secondThird, work.Bottom),
+            WindowAction.RightTwoThirds => new(firstThird, work.Top, work.Right, work.Bottom),
             _ => throw new ArgumentOutOfRangeException(nameof(action), action, "This action has no tile bounds.")
         };
     }
@@ -42,6 +54,8 @@ internal sealed class WindowManager
         WindowAction.Left => "left half", WindowAction.Right => "right half",
         WindowAction.TopLeft => "top-left quarter", WindowAction.TopRight => "top-right quarter",
         WindowAction.BottomLeft => "bottom-left quarter", WindowAction.BottomRight => "bottom-right quarter",
+        WindowAction.LeftThird => "left third", WindowAction.CenterThird => "center third", WindowAction.RightThird => "right third",
+        WindowAction.LeftTwoThirds => "left two-thirds", WindowAction.RightTwoThirds => "right two-thirds",
         _ => throw new ArgumentOutOfRangeException(nameof(action))
     };
 

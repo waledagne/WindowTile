@@ -23,6 +23,6 @@ function Initialize-KeyTileEnvironment {
 
 function Assert-KeyTileStopped {
     if (@(Get-Process -Name KeyTile -ErrorAction SilentlyContinue).Count -gt 0) {
-        throw 'Exit KeyTile from its panel or tray menu before running tests; the tests need its four shortcuts.'
+        throw 'Exit KeyTile from its panel or tray menu before running tests; the tests need its global shortcuts.'
     }
 }

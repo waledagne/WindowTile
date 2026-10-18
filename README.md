@@ -1,6 +1,6 @@
 # WindowTile
 
-A C# / WPF window manager prototype for Windows 11. It moves the focused app window using eight global keyboard shortcuts, organized into **Basics** and **Corners** tabs. All shortcuts stay active regardless of the selected tab. The executable and tray app are currently named **KeyTile**.
+A C# / WPF window manager prototype for Windows 11. It moves the focused app window using thirteen global keyboard shortcuts, organized into **Basics**, **Corners**, and **Thirds** tabs. All shortcuts stay active regardless of the selected tab. The executable and tray app are currently named **KeyTile**.
 
 ## Basics
 
@@ -21,6 +21,18 @@ A C# / WPF window manager prototype for Windows 11. It moves the focused app win
 | Ctrl + Alt + 4 | Snap to the bottom-right quarter of the current monitor |
 
 Use the number row above the letters, rather than the numeric keypad. Corners divide the monitor's work area into four tiles, excluding the taskbar. Odd pixel dimensions give the extra pixel to the right or bottom tiles. Restore works across corners, halves, and maximize in the same sequence.
+
+## Thirds
+
+| Shortcut | Action |
+| --- | --- |
+| Ctrl + Alt + 5 | Snap to the left third of the current monitor |
+| Ctrl + Alt + 6 | Snap to the center third of the current monitor |
+| Ctrl + Alt + 7 | Snap to the right third of the current monitor |
+| Ctrl + Alt + 8 | Snap to the left two-thirds of the current monitor |
+| Ctrl + Alt + 9 | Snap to the right two-thirds of the current monitor |
+
+Use the number row for these shortcuts too. All five tiles use the full height of the monitor's work area. Three columns share boundaries without gaps or overlap; widths that are not divisible by three produce columns that differ by at most one pixel. Each two-thirds tile combines two adjacent columns, so it fits beside the remaining third. Restore remembers the original placement across thirds, corners, halves, and maximize.
 
 ## Clone and set up
 
@@ -99,7 +111,7 @@ Monitor work areas exclude the taskbar. The manifest enables Per Monitor V2 DPI 
 ## Prototype limits
 
 - Shortcuts are fixed for this iteration. Shortcut editing and mouse snapping are future work.
-- Fixed-size, tool, desktop, and hidden/cloaked windows are skipped. Applications with large minimum sizes may not fit a half or quarter tile.
+- Fixed-size, tool, desktop, and hidden/cloaked windows are skipped. Applications with large minimum sizes may not fit a tile, particularly a narrow third or quarter.
 - Elevated applications may require running KeyTile at the same privilege level. The app runs as the current user by default.
 - Mixed-DPI hardware, monitor removal during a command, remote desktop, and app-specific rendering behavior need broader compatibility testing. Snapshot identity uses window handle, process ID, and thread ID; rare reuse of all three within a running process is not yet tracked with window-destruction events.
 - A successful native resize does not register the window as part of a Windows Snap group.
