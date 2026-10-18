@@ -6,7 +6,7 @@ namespace KeyTile;
 
 internal static class NativeMethods
 {
-    internal const uint ModAlt = 0x0001, ModControl = 0x0002, ModNoRepeat = 0x4000;
+    internal const uint ModAlt = 0x0001, ModControl = 0x0002, ModShift = 0x0004, ModNoRepeat = 0x4000;
     internal const int WmHotkey = 0x0312, GwlStyle = -16, GwlExStyle = -20;
     internal const long WsChild = 0x40000000, WsThickFrame = 0x00040000, WsMaximizeBox = 0x00010000;
     internal const long WsExToolWindow = 0x00000080;

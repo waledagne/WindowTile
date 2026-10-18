@@ -1,6 +1,6 @@
 # WindowTile
 
-A C# / WPF window manager prototype for Windows 11. It moves the focused app window using thirteen global keyboard shortcuts, organized into **Basics**, **Corners**, and **Thirds** tabs. All shortcuts stay active regardless of the selected tab. The executable and tray app are currently named **KeyTile**.
+A C# / WPF window manager prototype for Windows 11. It moves the focused app window using seventeen global keyboard shortcuts, organized into **Basics**, **Corners**, **Thirds**, and **Window Placement** tabs. All shortcuts stay active regardless of the selected tab. The executable and tray app are currently named **KeyTile**.
 
 ## Basics
 
@@ -9,7 +9,7 @@ A C# / WPF window manager prototype for Windows 11. It moves the focused app win
 | Ctrl + Alt + Left | Snap to the left half of the current monitor |
 | Ctrl + Alt + Right | Snap to the right half of the current monitor |
 | Ctrl + Alt + Up | Maximize |
-| Ctrl + Alt + Down | Restore the position and state saved before the first snap or maximize |
+| Ctrl + Alt + Down | Restore the position and state saved before the first placement change |
 
 ## Corners
 
@@ -33,6 +33,17 @@ Use the number row above the letters, rather than the numeric keypad. Corners di
 | Ctrl + Alt + 9 | Snap to the right two-thirds of the current monitor |
 
 Use the number row for these shortcuts too. All five tiles use the full height of the monitor's work area. Three columns share boundaries without gaps or overlap; widths that are not divisible by three produce columns that differ by at most one pixel. Each two-thirds tile combines two adjacent columns, so it fits beside the remaining third. Restore remembers the original placement across thirds, corners, halves, and maximize.
+
+## Window Placement
+
+| Shortcut | Action |
+| --- | --- |
+| Ctrl + Alt + Shift + C | Center the window, keeping its current size |
+| Ctrl + Alt + Shift + S | Resize to 50% of the work-area width and height, then center |
+| Ctrl + Alt + Shift + M | Resize to 70% of the work-area width and height, then center |
+| Ctrl + Alt + Shift + L | Resize to 90% of the work-area width and height, then center |
+
+Presets use the visible frame and the current monitor's work area, excluding the taskbar. Percentages apply separately to width and height, with fractional pixels rounded down; these are fixed presets, so repeating a preset keeps the same size. Center also supports fixed-size app windows. If a window is larger than the work area, Center preserves its size and may place its edges outside that area. A maximized window first returns to its normal size before centering or resizing. Restore returns to the size, position, and state before the first placement change, including an initially maximized state. If an app's minimum size prevents a preset from fitting, KeyTile reports that and keeps its saved original placement for Restore.
 
 ## Clone and set up
 
@@ -111,7 +122,7 @@ Monitor work areas exclude the taskbar. The manifest enables Per Monitor V2 DPI 
 ## Prototype limits
 
 - Shortcuts are fixed for this iteration. Shortcut editing and mouse snapping are future work.
-- Fixed-size, tool, desktop, and hidden/cloaked windows are skipped. Applications with large minimum sizes may not fit a tile, particularly a narrow third or quarter.
+- Tool, desktop, and hidden/cloaked windows are skipped. Fixed-size windows support Center and Restore, but reject resize, tile, and maximize commands. Applications with large minimum sizes may not fit a tile or resize preset.
 - Elevated applications may require running KeyTile at the same privilege level. The app runs as the current user by default.
 - Mixed-DPI hardware, monitor removal during a command, remote desktop, and app-specific rendering behavior need broader compatibility testing. Snapshot identity uses window handle, process ID, and thread ID; rare reuse of all three within a running process is not yet tracked with window-destruction events.
 - A successful native resize does not register the window as part of a Windows Snap group.

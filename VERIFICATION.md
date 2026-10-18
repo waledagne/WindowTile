@@ -2,6 +2,17 @@
 
 Release build: KeyTile 0.1.0, C# / WPF, net10.0-windows.
 
+## Window Placement increment
+
+- `Build.ps1` built and published with zero warnings/errors; all 166 checks passed.
+- Added Window Placement: Center keeps the visible size, while Small, Medium, and Large use 50%, 70%, and 90% of the current work-area width and height and center the result. Shortcuts use Ctrl + Alt + Shift + C/S/M/L.
+- Geometry checks cover odd dimensions, negative monitor origins, portrait work areas, oversized windows, and nonzero preset dimensions.
+- WPF and WinForms fixtures match all four placements. Center preserves preset sizes, and sequences across placement, tiles, and maximize restore the original bounds. Initially maximized windows return to their saved maximized state.
+- Fixed-size windows support Center and Restore but reject resize presets. A minimum-width fixture rejects a preset it cannot fit and still restores the saved original placement.
+- Conflict, pause, resume, and disposal checks cover all seventeen shortcuts, including per-binding Shift modifiers.
+- Visually inspected the published Window Placement tab and tested all four shortcuts through Windows Computer Use. On the 1920 × 1032 work area, Center kept the fixture's 606 × 393 visible size at (657, 319). Small, Medium, and Large produced centered visible frames of 960 × 516 at (480, 258), 1344 × 722 at (288, 155), and 1728 × 928 at (96, 52). Repeating Medium kept the same bounds, and Restore returned to the original (180, 110), 620 × 400 placement.
+- All four placement rows show Paused while paused. An independent probe acquired all seventeen shortcuts while paused and confirmed they were all owned by KeyTile after resume.
+
 ## Thirds increment
 
 - `Build.ps1` built and published with zero warnings/errors; all 105 checks passed.

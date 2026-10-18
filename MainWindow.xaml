@@ -157,9 +157,35 @@
           </Grid></Border>
         </StackPanel>
         </TabItem>
+        <TabItem Header="Window Placement">
+        <StackPanel TextElement.Foreground="#F2F6F8">
+          <TextBlock Text="Center at the current size, or choose a centered size preset." Foreground="#A5B7C3" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,12" />
+          <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <Grid Width="27" Height="22" HorizontalAlignment="Left"><Border BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="12" Height="10" HorizontalAlignment="Center" VerticalAlignment="Center" BorderBrush="#71E6C0" BorderThickness="2" CornerRadius="1" /></Grid>
+            <StackPanel Grid.Column="1"><TextBlock Text="Center · keep size" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="CenterStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
+            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + Shift + C" FontSize="13" FontFamily="Consolas" /></Border>
+          </Grid></Border>
+          <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <Grid Width="27" Height="22" HorizontalAlignment="Left"><Border BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="11" Height="8" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#71E6C0" CornerRadius="1" /></Grid>
+            <StackPanel Grid.Column="1"><TextBlock Text="Small · 50%" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="ResizeSmallStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
+            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + Shift + S" FontSize="13" FontFamily="Consolas" /></Border>
+          </Grid></Border>
+          <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <Grid Width="27" Height="22" HorizontalAlignment="Left"><Border BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="15" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#71E6C0" CornerRadius="1" /></Grid>
+            <StackPanel Grid.Column="1"><TextBlock Text="Medium · 70%" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="ResizeMediumStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
+            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + Shift + M" FontSize="13" FontFamily="Consolas" /></Border>
+          </Grid></Border>
+          <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <Grid Width="27" Height="22" HorizontalAlignment="Left"><Border BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="19" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#71E6C0" CornerRadius="1" /></Grid>
+            <StackPanel Grid.Column="1"><TextBlock Text="Large · 90%" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="ResizeLargeStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
+            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + Shift + L" FontSize="13" FontFamily="Consolas" /></Border>
+          </Grid></Border>
+          <TextBlock Text="Presets set both width and height to a percentage of the work area, then center the window." Foreground="#A5B7C3" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0" />
+        </StackPanel>
+        </TabItem>
       </TabControl>
       <Border Grid.Row="3" Margin="0,10,0,18" Padding="13,11" BorderBrush="#2C414F" BorderThickness="1" CornerRadius="7">
-        <TextBlock Text="Restore remembers the position before your first snap or maximize, until you restore it. Saved positions last for this session." Foreground="#A5B7C3" FontSize="12" TextWrapping="Wrap" LineHeight="18" />
+        <TextBlock Text="Restore remembers the size, position, and state before your first placement change. Saved positions last for this session." Foreground="#A5B7C3" FontSize="12" TextWrapping="Wrap" LineHeight="18" />
       </Border>
       <Grid Grid.Row="4"><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
         <Button x:Name="PauseButton" Content="Pause shortcuts" HorizontalAlignment="Left" Click="Pause_Click" />

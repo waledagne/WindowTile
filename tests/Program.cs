@@ -19,6 +19,8 @@ internal static class Program
         [WindowAction.TopLeft, WindowAction.TopRight, WindowAction.BottomLeft, WindowAction.BottomRight];
     private static readonly WindowAction[] Thirds =
         [WindowAction.LeftThird, WindowAction.CenterThird, WindowAction.RightThird, WindowAction.LeftTwoThirds, WindowAction.RightTwoThirds];
+    private static readonly WindowAction[] Placements =
+        [WindowAction.Center, WindowAction.ResizeSmall, WindowAction.ResizeMedium, WindowAction.ResizeLarge];
     [STAThread]
     private static int Main(string[] args)
     {
@@ -61,12 +63,13 @@ internal static class Program
             var window = new Window
             {
                 Title = args.Contains("--fixed") ? "KeyTile fixed test window" : "KeyTile shortcut test window",
-                Width = 620, Height = 400, MinWidth = 200, MinHeight = 150,
+                Width = 620, Height = 400,
+                MinWidth = args.Contains("--minimum") ? SystemParameters.WorkArea.Width * 0.75 : 200, MinHeight = 150,
                 Left = 180, Top = 110, WindowStartupLocation = WindowStartupLocation.Manual,
                 ResizeMode = args.Contains("--fixed") ? ResizeMode.NoResize : ResizeMode.CanResize,
                 Content = new TextBlock
                 {
-                    Text = "KeyTile test window\n\nCtrl + Alt + Left / Right: snap\nCtrl + Alt + 1 / 2 / 3 / 4: corners\nCtrl + Alt + 5 / 6 / 7 / 8 / 9: thirds\nCtrl + Alt + Up: maximize\nCtrl + Alt + Down: restore",
+                    Text = "KeyTile test window\n\nCtrl + Alt + Left / Right: snap\nCtrl + Alt + 1 / 2 / 3 / 4: corners\nCtrl + Alt + 5 / 6 / 7 / 8 / 9: thirds\nCtrl + Alt + Shift + C / S / M / L: placement\nCtrl + Alt + Up: maximize\nCtrl + Alt + Down: restore",
                     Margin = new Thickness(30), FontSize = 20, TextWrapping = TextWrapping.Wrap
                 }
             };
@@ -77,6 +80,7 @@ internal static class Program
         {
             TestGeometry();
             TestThirdGeometry();
+            TestPlacementGeometry();
             TestHotkeyLifecycle();
             RunNativeTestsAsync().GetAwaiter().GetResult();
             Console.WriteLine($"PASS: {_passed} checks completed.");
@@ -130,6 +134,33 @@ internal static class Program
         }
     }
 
+    private static void TestPlacementGeometry()
+    {
+        foreach (Rect work in new[] { new Rect(0, 0, 1920, 1032), new Rect(-1920, -200, -1, 881), new Rect(40, 70, 1121, 1991) })
+        {
+            foreach (Rect current in new[] { new Rect(180, 110, 786, 503), new Rect(-100, -300, 2400, 2200) })
+            {
+                Rect centered = WindowManager.PlacementBounds(work, current, WindowAction.Center);
+                Check(centered.Width == current.Width && centered.Height == current.Height && IsCentered(centered, work),
+                    $"Center preserves size and balances margins, including oversized windows: {work}, {current}");
+            }
+            foreach (var (action, percent) in new[] { (WindowAction.ResizeSmall, 50), (WindowAction.ResizeMedium, 70), (WindowAction.ResizeLarge, 90) })
+            {
+                Rect resized = WindowManager.PlacementBounds(work, new Rect(180, 110, 786, 503), action);
+                Check(IsCentered(resized, work) && resized.Left >= work.Left && resized.Top >= work.Top
+                    && resized.Right <= work.Right && resized.Bottom <= work.Bottom
+                    && work.Width * percent - resized.Width * 100 is >= 0 and < 100
+                    && work.Height * percent - resized.Height * 100 is >= 0 and < 100,
+                    $"{action} uses the requested work-area proportions and equal margins: {work}");
+            }
+        }
+        Rect tiny = WindowManager.PlacementBounds(new Rect(-1, -1, 0, 0), default, WindowAction.ResizeSmall);
+        Check(tiny.Width == 1 && tiny.Height == 1, "Resize presets never produce a zero-sized target");
+    }
+
+    private static bool IsCentered(Rect bounds, Rect work) => Math.Abs((bounds.Left - work.Left) - (work.Right - bounds.Right)) <= 1
+        && Math.Abs((bounds.Top - work.Top) - (work.Bottom - bounds.Bottom)) <= 1;
+
     private static void TestHotkeyLifecycle()
     {
         using var blocker = new HwndSource(new HwndSourceParameters("KeyTile test blocker") { ParentWindow = new nint(-3) });
@@ -156,30 +187,30 @@ internal static class Program
             manager.SetEnabled(false);
             foreach (HotkeyBinding binding in HotkeyManager.Bindings.Where(b => b.Action != WindowAction.TopLeft))
             {
-                bool acquired = RegisterHotKey(blocker.Handle, 46, ModControl | ModAlt | ModNoRepeat, binding.Key);
+                bool acquired = RegisterHotKey(blocker.Handle, 46, binding.Modifiers | ModNoRepeat, binding.Key);
                 if (acquired) UnregisterHotKey(blocker.Handle, 46);
                 Check(acquired, $"Pause releases {binding.Label}");
             }
         }
         finally { UnregisterHotKey(blocker.Handle, 45); }
-        foreach (WindowAction action in new[] { WindowAction.CenterThird, WindowAction.RightTwoThirds })
+        foreach (WindowAction action in new[] { WindowAction.CenterThird, WindowAction.RightTwoThirds, WindowAction.Center, WindowAction.ResizeMedium })
         {
             HotkeyBinding binding = HotkeyManager.Bindings.Single(b => b.Action == action);
-            Check(RegisterHotKey(blocker.Handle, 47, ModControl | ModAlt | ModNoRepeat, binding.Key), $"Reserve {action} for conflict test");
+            Check(RegisterHotKey(blocker.Handle, 47, binding.Modifiers | ModNoRepeat, binding.Key), $"Reserve {action} for conflict test");
             try
             {
                 using var manager = new HotkeyManager();
                 var statuses = manager.SetEnabled(true);
                 Check(!statuses.Single(s => s.Binding.Action == action).Registered
                     && statuses.Where(s => s.Binding.Action != action).All(s => s.Registered),
-                    $"{action} conflict leaves the other twelve shortcuts available");
+                    $"{action} conflict leaves the other shortcuts available");
             }
             finally { UnregisterHotKey(blocker.Handle, 47); }
         }
-        using (var manager = new HotkeyManager()) Check(manager.SetEnabled(true).All(s => s.Registered), "Resume acquires all thirteen shortcuts");
+        using (var manager = new HotkeyManager()) Check(manager.SetEnabled(true).All(s => s.Registered), $"Resume acquires all {HotkeyManager.Bindings.Length} shortcuts");
         foreach (HotkeyBinding binding in HotkeyManager.Bindings)
         {
-            bool acquired = RegisterHotKey(blocker.Handle, 44, ModControl | ModAlt | ModNoRepeat, binding.Key);
+            bool acquired = RegisterHotKey(blocker.Handle, 44, binding.Modifiers | ModNoRepeat, binding.Key);
             if (acquired) UnregisterHotKey(blocker.Handle, 44);
             Check(acquired, $"Dispose releases {binding.Label}");
         }
@@ -249,6 +280,41 @@ internal static class Program
                 && WindowManager.Near(Placement(b).NormalPosition, originalB.NormalPosition),
                 "Thirds sequence restores the second window independently");
 
+            await TestNativePlacementAsync(manager, a, "WPF");
+            await TestNativePlacementAsync(manager, b, "WinForms");
+
+            foreach (WindowAction action in new[] { WindowAction.Center, WindowAction.ResizeMedium })
+            {
+                Check(ShowWindowAsync(a, SwMaximize), $"Set initial maximized state before {action}");
+                await UntilAsync(() => IsZoomed(a));
+                await Task.Delay(150);
+                Check((await manager.ExecuteAsync(action, a)).Success && !IsZoomed(a), $"{action} positions an initially maximized window");
+                Check((await manager.ExecuteAsync(WindowAction.Restore, a)).Success && IsZoomed(a)
+                    && WindowManager.Near(Placement(a).NormalPosition, originalA.NormalPosition),
+                    $"Restore after {action} returns to the original maximized state and normal bounds");
+                Check((await manager.ExecuteAsync(WindowAction.Restore, a)).Success && !IsZoomed(a), $"Second restore after {action} unmaximizes");
+            }
+
+            WindowPlacement originalFixed = Placement(fixedHandle);
+            Rect fixedBounds = WindowManager.GetVisibleBounds(fixedHandle);
+            Check((await manager.ExecuteAsync(WindowAction.Center, fixedHandle)).Success
+                && WindowManager.GetVisibleBounds(fixedHandle).Width == fixedBounds.Width
+                && WindowManager.GetVisibleBounds(fixedHandle).Height == fixedBounds.Height,
+                "Center moves a fixed-size window without resizing it");
+            Check((await manager.ExecuteAsync(WindowAction.Restore, fixedHandle)).Success
+                && WindowManager.Near(Placement(fixedHandle).NormalPosition, originalFixed.NormalPosition),
+                "Fixed-size window restores its original placement after centering");
+            Check(!(await manager.ExecuteAsync(WindowAction.ResizeSmall, fixedHandle)).Success, "Fixed-size window rejects resize presets");
+
+            Process minimumWindow = StartFixture(minimumSize: true); fixtures.Add(minimumWindow);
+            nint minimumHandle = await WaitForWindowAsync(minimumWindow);
+            WindowPlacement originalMinimum = Placement(minimumHandle);
+            Check(!(await manager.ExecuteAsync(WindowAction.ResizeSmall, minimumHandle)).Success,
+                "Resize reports failure when an app's minimum width exceeds the preset");
+            Check((await manager.ExecuteAsync(WindowAction.Restore, minimumHandle)).Success
+                && WindowManager.Near(Placement(minimumHandle).NormalPosition, originalMinimum.NormalPosition),
+                "Restore retains the saved placement after a preset cannot fit");
+
             foreach (WindowAction third in new[] { WindowAction.CenterThird, WindowAction.LeftTwoThirds })
             {
                 Check(ShowWindowAsync(a, SwMaximize), $"Set initial maximized state before {third}");
@@ -294,8 +360,33 @@ internal static class Program
         }
     }
 
-    private static Process StartFixture(bool fixedSize = false, bool winForms = false) => Process.Start(new ProcessStartInfo(Environment.ProcessPath!,
-        "--fixture" + (fixedSize ? " --fixed" : "") + (winForms ? " --winforms" : "")) { UseShellExecute = false, CreateNoWindow = true })!;
+    private static async Task TestNativePlacementAsync(WindowManager manager, nint window, string label)
+    {
+        WindowPlacement original = Placement(window);
+        var monitor = MonitorInfo.Create();
+        Check(GetMonitorInfo(MonitorFromWindow(window, MonitorDefaultToNearest), ref monitor), $"Read {label} monitor for placement");
+        foreach (WindowAction action in Placements)
+        {
+            Rect before = WindowManager.GetVisibleBounds(window);
+            Rect target = WindowManager.PlacementBounds(monitor.Work, before, action);
+            Check((await manager.ExecuteAsync(action, window)).Success
+                && WindowManager.Near(WindowManager.GetVisibleBounds(window), target), $"{label} visible frame matches {action} placement");
+            Rect positioned = WindowManager.GetVisibleBounds(window);
+            Check((await manager.ExecuteAsync(WindowAction.Center, window)).Success
+                && WindowManager.Near(WindowManager.GetVisibleBounds(window), positioned), $"{label} centering is idempotent after {action}");
+        }
+        Check((await manager.ExecuteAsync(WindowAction.TopRight, window)).Success
+            && (await manager.ExecuteAsync(WindowAction.CenterThird, window)).Success
+            && (await manager.ExecuteAsync(WindowAction.Left, window)).Success
+            && (await manager.ExecuteAsync(WindowAction.Maximize, window)).Success
+            && (await manager.ExecuteAsync(WindowAction.ResizeSmall, window)).Success
+            && (await manager.ExecuteAsync(WindowAction.Restore, window)).Success
+            && !IsZoomed(window) && WindowManager.Near(Placement(window).NormalPosition, original.NormalPosition),
+            $"{label} restores the original placement after centering, presets, tiles, and maximize");
+    }
+
+    private static Process StartFixture(bool fixedSize = false, bool winForms = false, bool minimumSize = false) => Process.Start(new ProcessStartInfo(Environment.ProcessPath!,
+        "--fixture" + (fixedSize ? " --fixed" : "") + (winForms ? " --winforms" : "") + (minimumSize ? " --minimum" : "")) { UseShellExecute = false, CreateNoWindow = true })!;
     private static async Task<nint> WaitForWindowAsync(Process process)
     {
         await UntilAsync(() => { process.Refresh(); return process.MainWindowHandle != 0; });

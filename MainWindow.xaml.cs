@@ -31,6 +31,8 @@ public partial class MainWindow : Window
                 WindowAction.LeftThird => LeftThirdStatus, WindowAction.CenterThird => CenterThirdStatus,
                 WindowAction.RightThird => RightThirdStatus, WindowAction.LeftTwoThirds => LeftTwoThirdsStatus,
                 WindowAction.RightTwoThirds => RightTwoThirdsStatus,
+                WindowAction.Center => CenterStatus, WindowAction.ResizeSmall => ResizeSmallStatus,
+                WindowAction.ResizeMedium => ResizeMediumStatus, WindowAction.ResizeLarge => ResizeLargeStatus,
                 _ => throw new ArgumentOutOfRangeException(nameof(statuses))
             };
             label.Text = !enabled ? "Paused" : status.Registered ? "Ready" : $"Unavailable · error {status.Error}";

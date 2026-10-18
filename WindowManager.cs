@@ -12,7 +12,8 @@ namespace KeyTile;
 internal enum WindowAction
 {
     Left, Right, Maximize, Restore, TopLeft, TopRight, BottomLeft, BottomRight,
-    LeftThird, CenterThird, RightThird, LeftTwoThirds, RightTwoThirds
+    LeftThird, CenterThird, RightThird, LeftTwoThirds, RightTwoThirds,
+    Center, ResizeSmall, ResizeMedium, ResizeLarge
 }
 internal readonly record struct CommandResult(bool Success, string Message);
 
@@ -49,6 +50,21 @@ internal sealed class WindowManager
         };
     }
 
+    internal static Rect PlacementBounds(Rect work, Rect current, WindowAction action)
+    {
+        int percent = action switch
+        {
+            WindowAction.Center => 0, WindowAction.ResizeSmall => 50,
+            WindowAction.ResizeMedium => 70, WindowAction.ResizeLarge => 90,
+            _ => throw new ArgumentOutOfRangeException(nameof(action))
+        };
+        int width = percent == 0 ? current.Width : Math.Max(1, (int)((long)work.Width * percent / 100));
+        int height = percent == 0 ? current.Height : Math.Max(1, (int)((long)work.Height * percent / 100));
+        int left = work.Left + (work.Width - width) / 2;
+        int top = work.Top + (work.Height - height) / 2;
+        return new(left, top, left + width, top + height);
+    }
+
     private static string TileName(WindowAction action) => action switch
     {
         WindowAction.Left => "left half", WindowAction.Right => "right half",
@@ -73,13 +89,14 @@ internal sealed class WindowManager
         PruneSnapshots();
         uint threadId = GetWindowThreadProcessId(window, out uint processId);
         if (!CanManage(window, processId))
-            return new(false, "Focus a resizable app window, then try a shortcut.");
+            return new(false, "Focus an app window, then try a shortcut.");
 
         if (action == WindowAction.Restore)
             return await RestoreAsync(window, processId, threadId);
 
         long style = GetStyle(window, GwlStyle);
-        if ((style & WsThickFrame) == 0 || (action == WindowAction.Maximize && (style & WsMaximizeBox) == 0))
+        if ((action != WindowAction.Center && (style & WsThickFrame) == 0)
+            || (action == WindowAction.Maximize && (style & WsMaximizeBox) == 0))
             return new(false, "This window does not support resizing or maximizing.");
 
         if (!_originals.ContainsKey(window))
@@ -105,28 +122,36 @@ internal sealed class WindowManager
 
         if (IsZoomed(window) || IsIconic(window))
         {
-            if (!ShowWindowAsync(window, SwRestore)) return NativeFailure("restore this window before snapping");
+            if (!ShowWindowAsync(window, SwRestore)) return NativeFailure("restore this window before positioning");
             if (!await WaitAsync(() => IsWindow(window) && !IsZoomed(window) && !IsIconic(window)))
                 return new(false, "The window did not restore in time. Try again when it responds.");
             // Let the target finish its non-client frame transition before measuring borders.
             await Task.Delay(100);
         }
 
-        Rect target = TileBounds(monitor.Work, action);
         if (!GetWindowRect(window, out Rect outer)) return NativeFailure("measure this window");
         Rect visible = GetVisibleBounds(window);
+        bool placementAction = action is WindowAction.Center or WindowAction.ResizeSmall or WindowAction.ResizeMedium or WindowAction.ResizeLarge;
+        Rect target = placementAction ? PlacementBounds(monitor.Work, visible, action) : TileBounds(monitor.Work, action);
         // DWM's visible frame excludes the invisible resize border in GetWindowRect.
         int leftBorder = visible.Left - outer.Left, topBorder = visible.Top - outer.Top;
         int rightBorder = outer.Right - visible.Right, bottomBorder = outer.Bottom - visible.Bottom;
         if (!SetWindowPos(window, 0, target.Left - leftBorder, target.Top - topBorder,
             target.Width + leftBorder + rightBorder, target.Height + topBorder + bottomBorder,
             SwpNoZOrder | SwpNoActivate | SwpAsync))
-            return NativeFailure("snap this window");
+            return NativeFailure("position this window");
 
         bool fitted = await WaitAsync(() => IsWindow(window) && Near(GetVisibleBounds(window), target));
-        return fitted
-            ? new(true, $"Snapped to the {TileName(action)}.")
-            : new(false, "The window could not fit the tile. It may have a minimum size or require administrator rights.");
+        if (!fitted)
+            return new(false, "The window could not fit the requested size or position. It may have a minimum size or require administrator rights.");
+        return new(true, action switch
+        {
+            WindowAction.Center => "Centered. Window size unchanged.",
+            WindowAction.ResizeSmall => "Resized to 50% of the work area and centered.",
+            WindowAction.ResizeMedium => "Resized to 70% of the work area and centered.",
+            WindowAction.ResizeLarge => "Resized to 90% of the work area and centered.",
+            _ => $"Snapped to the {TileName(action)}."
+        });
     }
 
     private async Task<CommandResult> RestoreAsync(nint window, uint processId, uint threadId)

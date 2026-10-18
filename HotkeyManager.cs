@@ -5,11 +5,13 @@ using System.Windows.Interop;
 
 namespace KeyTile;
 
-internal sealed record HotkeyBinding(int Id, WindowAction Action, uint Key, string Label);
+internal sealed record HotkeyBinding(int Id, WindowAction Action, uint Key, string Label,
+    uint Modifiers = NativeMethods.ModControl | NativeMethods.ModAlt);
 internal sealed record HotkeyStatus(HotkeyBinding Binding, bool Registered, int Error);
 
 internal sealed class HotkeyManager : IDisposable
 {
+    private const uint PlacementModifiers = NativeMethods.ModControl | NativeMethods.ModAlt | NativeMethods.ModShift;
     internal static readonly HotkeyBinding[] Bindings =
     [
         new(1, WindowAction.Left, 0x25, "Ctrl + Alt + Left"),
@@ -24,7 +26,11 @@ internal sealed class HotkeyManager : IDisposable
         new(10, WindowAction.CenterThird, 0x36, "Ctrl + Alt + 6"),
         new(11, WindowAction.RightThird, 0x37, "Ctrl + Alt + 7"),
         new(12, WindowAction.LeftTwoThirds, 0x38, "Ctrl + Alt + 8"),
-        new(13, WindowAction.RightTwoThirds, 0x39, "Ctrl + Alt + 9")
+        new(13, WindowAction.RightTwoThirds, 0x39, "Ctrl + Alt + 9"),
+        new(14, WindowAction.Center, 0x43, "Ctrl + Alt + Shift + C", PlacementModifiers),
+        new(15, WindowAction.ResizeSmall, 0x53, "Ctrl + Alt + Shift + S", PlacementModifiers),
+        new(16, WindowAction.ResizeMedium, 0x4D, "Ctrl + Alt + Shift + M", PlacementModifiers),
+        new(17, WindowAction.ResizeLarge, 0x4C, "Ctrl + Alt + Shift + L", PlacementModifiers)
     ];
     private readonly HwndSource _source;
     private readonly List<int> _registered = new();
@@ -44,7 +50,7 @@ internal sealed class HotkeyManager : IDisposable
         foreach (HotkeyBinding binding in Bindings)
         {
             bool registered = enabled && NativeMethods.RegisterHotKey(_source.Handle, binding.Id,
-                NativeMethods.ModControl | NativeMethods.ModAlt | NativeMethods.ModNoRepeat, binding.Key);
+                binding.Modifiers | NativeMethods.ModNoRepeat, binding.Key);
             int error = enabled && !registered ? Marshal.GetLastWin32Error() : 0;
             if (registered) _registered.Add(binding.Id);
             statuses.Add(new(binding, registered, error));
