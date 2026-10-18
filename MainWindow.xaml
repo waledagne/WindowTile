@@ -1,0 +1,94 @@
+<Window x:Class="KeyTile.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="KeyTile" Width="660" Height="690" MinWidth="580" MinHeight="640"
+        WindowStartupLocation="CenterScreen" Background="#101820" Foreground="#F2F6F8"
+        FontFamily="Segoe UI" Icon="Assets/KeyTile.ico">
+  <Window.Resources>
+    <Style TargetType="Button">
+      <Setter Property="Background" Value="#23323E" />
+      <Setter Property="Foreground" Value="#F2F6F8" />
+      <Setter Property="Padding" Value="18,10" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Template">
+        <Setter.Value><ControlTemplate TargetType="Button">
+          <Border x:Name="ButtonBorder" Background="{TemplateBinding Background}" CornerRadius="7" Padding="{TemplateBinding Padding}">
+            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ButtonBorder" Property="Opacity" Value="0.8" /></Trigger>
+            <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="ButtonBorder" Property="BorderBrush" Value="#71E6C0" /><Setter TargetName="ButtonBorder" Property="BorderThickness" Value="2" /></Trigger>
+            <Trigger Property="IsEnabled" Value="False"><Setter TargetName="ButtonBorder" Property="Opacity" Value="0.4" /></Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate></Setter.Value>
+      </Setter>
+    </Style>
+    <Style x:Key="Card" TargetType="Border">
+      <Setter Property="Background" Value="#192630" /><Setter Property="CornerRadius" Value="9" />
+      <Setter Property="Padding" Value="16,13" /><Setter Property="Margin" Value="0,0,0,8" />
+    </Style>
+    <Style x:Key="Keycap" TargetType="Border">
+      <Setter Property="Background" Value="#253643" /><Setter Property="CornerRadius" Value="5" />
+      <Setter Property="Padding" Value="12,6" /><Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+  </Window.Resources>
+  <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <Grid Margin="30,26,30,24">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
+      </Grid.RowDefinitions>
+      <Grid>
+        <StackPanel Orientation="Horizontal">
+          <Border Width="42" Height="42" Background="#71E6C0" CornerRadius="10" Margin="0,0,12,0">
+            <Grid Margin="10"><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition /></Grid.ColumnDefinitions>
+              <Border Background="#102D2A" CornerRadius="2" Margin="0,0,2,0" />
+              <Border Grid.Column="1" BorderBrush="#102D2A" BorderThickness="2" CornerRadius="2" Margin="2,0,0,0" />
+            </Grid>
+          </Border>
+          <StackPanel VerticalAlignment="Center"><TextBlock Text="KeyTile" FontSize="25" FontWeight="SemiBold" /><TextBlock Text="WINDOWS KEYBOARD PROTOTYPE" FontSize="10" Foreground="#90A7B7" /></StackPanel>
+        </StackPanel>
+        <Border HorizontalAlignment="Right" VerticalAlignment="Center" Background="#1A3832" CornerRadius="12" Padding="11,5">
+          <TextBlock x:Name="StatusBadge" Text="ACTIVE" Foreground="#71E6C0" FontSize="11" FontWeight="SemiBold" />
+        </Border>
+      </Grid>
+      <StackPanel Grid.Row="1" Margin="0,28,0,20">
+        <TextBlock Text="A place for every window." FontSize="25" FontWeight="SemiBold" />
+        <TextBlock Text="Focus an app, then press a shortcut. KeyTile can stay in your tray." FontSize="13" Foreground="#A5B7C3" Margin="0,8,0,0" TextWrapping="Wrap" />
+      </StackPanel>
+      <StackPanel Grid.Row="2">
+        <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+          <Grid Width="27" Height="22" HorizontalAlignment="Left"><Border BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="12" HorizontalAlignment="Left" Background="#71E6C0" CornerRadius="3,0,0,3" Margin="2" /></Grid>
+          <StackPanel Grid.Column="1"><TextBlock Text="Left half" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="LeftStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
+          <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + ←" FontSize="13" FontFamily="Consolas" /></Border>
+        </Grid></Border>
+        <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+          <Grid Width="27" Height="22" HorizontalAlignment="Left"><Border BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="12" HorizontalAlignment="Right" Background="#71E6C0" CornerRadius="0,3,3,0" Margin="2" /></Grid>
+          <StackPanel Grid.Column="1"><TextBlock Text="Right half" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="RightStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
+          <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + →" FontSize="13" FontFamily="Consolas" /></Border>
+        </Grid></Border>
+        <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+          <Border Width="27" Height="22" HorizontalAlignment="Left" BorderBrush="#71E6C0" BorderThickness="2" CornerRadius="3" />
+          <StackPanel Grid.Column="1"><TextBlock Text="Maximize" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="MaximizeStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
+          <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + ↑" FontSize="13" FontFamily="Consolas" /></Border>
+        </Grid></Border>
+        <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+          <Grid Width="27" Height="25" HorizontalAlignment="Left"><Border Width="21" Height="17" HorizontalAlignment="Right" VerticalAlignment="Top" BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="21" Height="17" HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="#192630" BorderBrush="#71E6C0" BorderThickness="2" CornerRadius="3" /></Grid>
+          <StackPanel Grid.Column="1"><TextBlock Text="Restore" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="RestoreStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
+          <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + ↓" FontSize="13" FontFamily="Consolas" /></Border>
+        </Grid></Border>
+      </StackPanel>
+      <Border Grid.Row="3" Margin="0,10,0,18" Padding="13,11" BorderBrush="#2C414F" BorderThickness="1" CornerRadius="7">
+        <TextBlock Text="Restore remembers the position before your first snap or maximize, until you restore it. Saved positions last for this session." Foreground="#A5B7C3" FontSize="12" TextWrapping="Wrap" LineHeight="18" />
+      </Border>
+      <Grid Grid.Row="4"><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+        <Button x:Name="PauseButton" Content="Pause shortcuts" HorizontalAlignment="Left" Click="Pause_Click" />
+        <Button Grid.Column="1" Content="Hide to tray" Margin="0,0,8,0" Click="Hide_Click" Background="#71E6C0" Foreground="#102D2A" />
+        <Button Grid.Column="2" Content="Exit" Click="Exit_Click" />
+      </Grid>
+      <TextBlock Grid.Row="5" x:Name="ActivityText" Text="Ready. Switch to another app to try a shortcut." Foreground="#90A7B7" FontSize="12" Margin="0,18,0,0" TextWrapping="Wrap" LineHeight="17" />
+    </Grid>
+  </ScrollViewer>
+</Window>
