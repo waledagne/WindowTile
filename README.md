@@ -1,6 +1,8 @@
 # WindowTile
 
-A C# / WPF window manager prototype for Windows 11. It moves the focused app window using four global keyboard shortcuts. The executable and tray app are currently named **KeyTile**.
+A C# / WPF window manager prototype for Windows 11. It moves the focused app window using eight global keyboard shortcuts, organized into **Basics** and **Corners** tabs. All shortcuts stay active regardless of the selected tab. The executable and tray app are currently named **KeyTile**.
+
+## Basics
 
 | Shortcut | Action |
 | --- | --- |
@@ -8,6 +10,17 @@ A C# / WPF window manager prototype for Windows 11. It moves the focused app win
 | Ctrl + Alt + Right | Snap to the right half of the current monitor |
 | Ctrl + Alt + Up | Maximize |
 | Ctrl + Alt + Down | Restore the position and state saved before the first snap or maximize |
+
+## Corners
+
+| Shortcut | Action |
+| --- | --- |
+| Ctrl + Alt + 1 | Snap to the top-left quarter of the current monitor |
+| Ctrl + Alt + 2 | Snap to the top-right quarter of the current monitor |
+| Ctrl + Alt + 3 | Snap to the bottom-left quarter of the current monitor |
+| Ctrl + Alt + 4 | Snap to the bottom-right quarter of the current monitor |
+
+Use the number row above the letters, rather than the numeric keypad. Corners divide the monitor's work area into four tiles, excluding the taskbar. Odd pixel dimensions give the extra pixel to the right or bottom tiles. Restore works across corners, halves, and maximize in the same sequence.
 
 ## Clone and set up
 
@@ -86,7 +99,7 @@ Monitor work areas exclude the taskbar. The manifest enables Per Monitor V2 DPI 
 ## Prototype limits
 
 - Shortcuts are fixed for this iteration. Shortcut editing and mouse snapping are future work.
-- Fixed-size, tool, desktop, and hidden/cloaked windows are skipped. Applications with large minimum sizes may not fit a half.
+- Fixed-size, tool, desktop, and hidden/cloaked windows are skipped. Applications with large minimum sizes may not fit a half or quarter tile.
 - Elevated applications may require running KeyTile at the same privilege level. The app runs as the current user by default.
 - Mixed-DPI hardware, monitor removal during a command, remote desktop, and app-specific rendering behavior need broader compatibility testing. Snapshot identity uses window handle, process ID, and thread ID; rare reuse of all three within a running process is not yet tracked with window-destruction events.
 - A successful native resize does not register the window as part of a Windows Snap group.

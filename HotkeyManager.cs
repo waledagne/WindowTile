@@ -15,7 +15,11 @@ internal sealed class HotkeyManager : IDisposable
         new(1, WindowAction.Left, 0x25, "Ctrl + Alt + Left"),
         new(2, WindowAction.Right, 0x27, "Ctrl + Alt + Right"),
         new(3, WindowAction.Maximize, 0x26, "Ctrl + Alt + Up"),
-        new(4, WindowAction.Restore, 0x28, "Ctrl + Alt + Down")
+        new(4, WindowAction.Restore, 0x28, "Ctrl + Alt + Down"),
+        new(5, WindowAction.TopLeft, 0x31, "Ctrl + Alt + 1"),
+        new(6, WindowAction.TopRight, 0x32, "Ctrl + Alt + 2"),
+        new(7, WindowAction.BottomLeft, 0x33, "Ctrl + Alt + 3"),
+        new(8, WindowAction.BottomRight, 0x34, "Ctrl + Alt + 4")
     ];
     private readonly HwndSource _source;
     private readonly List<int> _registered = new();

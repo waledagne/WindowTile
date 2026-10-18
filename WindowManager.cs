@@ -9,7 +9,7 @@ using static KeyTile.NativeMethods;
 
 namespace KeyTile;
 
-internal enum WindowAction { Left, Right, Maximize, Restore }
+internal enum WindowAction { Left, Right, Maximize, Restore, TopLeft, TopRight, BottomLeft, BottomRight }
 internal readonly record struct CommandResult(bool Success, string Message);
 
 internal sealed class WindowManager
@@ -23,6 +23,27 @@ internal sealed class WindowManager
         int middle = work.Left + work.Width / 2;
         return right ? new(middle, work.Top, work.Right, work.Bottom) : new(work.Left, work.Top, middle, work.Bottom);
     }
+
+    internal static Rect TileBounds(Rect work, WindowAction action)
+    {
+        Rect half = Half(work, action is WindowAction.Right or WindowAction.TopRight or WindowAction.BottomRight);
+        int middle = work.Top + work.Height / 2;
+        return action switch
+        {
+            WindowAction.Left or WindowAction.Right => half,
+            WindowAction.TopLeft or WindowAction.TopRight => new(half.Left, work.Top, half.Right, middle),
+            WindowAction.BottomLeft or WindowAction.BottomRight => new(half.Left, middle, half.Right, work.Bottom),
+            _ => throw new ArgumentOutOfRangeException(nameof(action), action, "This action has no tile bounds.")
+        };
+    }
+
+    private static string TileName(WindowAction action) => action switch
+    {
+        WindowAction.Left => "left half", WindowAction.Right => "right half",
+        WindowAction.TopLeft => "top-left quarter", WindowAction.TopRight => "top-right quarter",
+        WindowAction.BottomLeft => "bottom-left quarter", WindowAction.BottomRight => "bottom-right quarter",
+        _ => throw new ArgumentOutOfRangeException(nameof(action))
+    };
 
     internal static Rect GetVisibleBounds(nint window)
     {
@@ -77,7 +98,7 @@ internal sealed class WindowManager
             await Task.Delay(100);
         }
 
-        Rect target = Half(monitor.Work, action == WindowAction.Right);
+        Rect target = TileBounds(monitor.Work, action);
         if (!GetWindowRect(window, out Rect outer)) return NativeFailure("measure this window");
         Rect visible = GetVisibleBounds(window);
         // DWM's visible frame excludes the invisible resize border in GetWindowRect.
@@ -90,8 +111,8 @@ internal sealed class WindowManager
 
         bool fitted = await WaitAsync(() => IsWindow(window) && Near(GetVisibleBounds(window), target));
         return fitted
-            ? new(true, action == WindowAction.Left ? "Snapped to the left half." : "Snapped to the right half.")
-            : new(false, "The window could not fit the half. It may have a minimum size or require administrator rights.");
+            ? new(true, $"Snapped to the {TileName(action)}.")
+            : new(false, "The window could not fit the tile. It may have a minimum size or require administrator rights.");
     }
 
     private async Task<CommandResult> RestoreAsync(nint window, uint processId, uint threadId)

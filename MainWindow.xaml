@@ -1,10 +1,29 @@
 <Window x:Class="KeyTile.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="KeyTile" Width="660" Height="690" MinWidth="580" MinHeight="640"
+        Title="KeyTile" Width="660" Height="760" MinWidth="580" MinHeight="700"
         WindowStartupLocation="CenterScreen" Background="#101820" Foreground="#F2F6F8"
         FontFamily="Segoe UI" Icon="Assets/KeyTile.ico">
   <Window.Resources>
+    <Style TargetType="TabItem">
+      <Setter Property="Foreground" Value="#A5B7C3" />
+      <Setter Property="Background" Value="#192630" />
+      <Setter Property="Padding" Value="18,10" />
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Template">
+        <Setter.Value><ControlTemplate TargetType="TabItem">
+          <Border x:Name="TabBorder" Background="{TemplateBinding Background}" CornerRadius="7" Padding="{TemplateBinding Padding}" Margin="0,0,8,12">
+            <ContentPresenter ContentSource="Header" HorizontalAlignment="Center" />
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="#71E6C0" /><Setter Property="Foreground" Value="#102D2A" /></Trigger>
+            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="TabBorder" Property="Opacity" Value="0.8" /></Trigger>
+            <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="TabBorder" Property="BorderBrush" Value="#F2F6F8" /><Setter TargetName="TabBorder" Property="BorderThickness" Value="2" /></Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate></Setter.Value>
+      </Setter>
+    </Style>
     <Style TargetType="Button">
       <Setter Property="Background" Value="#23323E" />
       <Setter Property="Foreground" Value="#F2F6F8" />
@@ -58,7 +77,9 @@
         <TextBlock Text="A place for every window." FontSize="25" FontWeight="SemiBold" />
         <TextBlock Text="Focus an app, then press a shortcut. KeyTile can stay in your tray." FontSize="13" Foreground="#A5B7C3" Margin="0,8,0,0" TextWrapping="Wrap" />
       </StackPanel>
-      <StackPanel Grid.Row="2">
+      <TabControl Grid.Row="2" Background="Transparent" BorderThickness="0" Padding="0" HorizontalContentAlignment="Stretch">
+        <TabItem Header="Basics">
+        <StackPanel TextElement.Foreground="#F2F6F8">
         <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
           <Grid Width="27" Height="22" HorizontalAlignment="Left"><Border BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="12" HorizontalAlignment="Left" Background="#71E6C0" CornerRadius="3,0,0,3" Margin="2" /></Grid>
           <StackPanel Grid.Column="1"><TextBlock Text="Left half" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="LeftStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
@@ -79,7 +100,34 @@
           <StackPanel Grid.Column="1"><TextBlock Text="Restore" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="RestoreStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
           <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + ↓" FontSize="13" FontFamily="Consolas" /></Border>
         </Grid></Border>
-      </StackPanel>
+        </StackPanel>
+        </TabItem>
+        <TabItem Header="Corners">
+        <StackPanel TextElement.Foreground="#F2F6F8">
+          <TextBlock Text="Four equal tiles on the current monitor. Use the number row, 1–4." Foreground="#A5B7C3" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,12" />
+          <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <Grid Width="27" Height="22" HorizontalAlignment="Left"><Border BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="10" Height="8" HorizontalAlignment="Left" VerticalAlignment="Top" Background="#71E6C0" CornerRadius="1" Margin="3" /></Grid>
+            <StackPanel Grid.Column="1"><TextBlock Text="Top-left quarter" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="TopLeftStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
+            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + 1" FontSize="13" FontFamily="Consolas" /></Border>
+          </Grid></Border>
+          <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <Grid Width="27" Height="22" HorizontalAlignment="Left"><Border BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="10" Height="8" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#71E6C0" CornerRadius="1" Margin="3" /></Grid>
+            <StackPanel Grid.Column="1"><TextBlock Text="Top-right quarter" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="TopRightStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
+            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + 2" FontSize="13" FontFamily="Consolas" /></Border>
+          </Grid></Border>
+          <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <Grid Width="27" Height="22" HorizontalAlignment="Left"><Border BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="10" Height="8" HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="#71E6C0" CornerRadius="1" Margin="3" /></Grid>
+            <StackPanel Grid.Column="1"><TextBlock Text="Bottom-left quarter" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="BottomLeftStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
+            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + 3" FontSize="13" FontFamily="Consolas" /></Border>
+          </Grid></Border>
+          <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <Grid Width="27" Height="22" HorizontalAlignment="Left"><Border BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="10" Height="8" HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="#71E6C0" CornerRadius="1" Margin="3" /></Grid>
+            <StackPanel Grid.Column="1"><TextBlock Text="Bottom-right quarter" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="BottomRightStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
+            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + 4" FontSize="13" FontFamily="Consolas" /></Border>
+          </Grid></Border>
+        </StackPanel>
+        </TabItem>
+      </TabControl>
       <Border Grid.Row="3" Margin="0,10,0,18" Padding="13,11" BorderBrush="#2C414F" BorderThickness="1" CornerRadius="7">
         <TextBlock Text="Restore remembers the position before your first snap or maximize, until you restore it. Saved positions last for this session." Foreground="#A5B7C3" FontSize="12" TextWrapping="Wrap" LineHeight="18" />
       </Border>

@@ -15,6 +15,8 @@ using Rect = KeyTile.NativeMethods.Rect;
 internal static class Program
 {
     private static int _passed;
+    private static readonly WindowAction[] Corners =
+        [WindowAction.TopLeft, WindowAction.TopRight, WindowAction.BottomLeft, WindowAction.BottomRight];
     [STAThread]
     private static int Main(string[] args)
     {
@@ -62,7 +64,7 @@ internal static class Program
                 ResizeMode = args.Contains("--fixed") ? ResizeMode.NoResize : ResizeMode.CanResize,
                 Content = new TextBlock
                 {
-                    Text = "KeyTile test window\n\nCtrl + Alt + Left / Right: snap\nCtrl + Alt + Up: maximize\nCtrl + Alt + Down: restore",
+                    Text = "KeyTile test window\n\nCtrl + Alt + Left / Right: snap\nCtrl + Alt + 1 / 2 / 3 / 4: corners\nCtrl + Alt + Up: maximize\nCtrl + Alt + Down: restore",
                     Margin = new Thickness(30), FontSize = 20, TextWrapping = TextWrapping.Wrap
                 }
             };
@@ -82,12 +84,22 @@ internal static class Program
 
     private static void TestGeometry()
     {
-        foreach (Rect work in new[] { new Rect(0, 0, 1920, 1040), new Rect(-1920, -200, -1, 880), new Rect(40, 70, 1121, 1991) })
+        foreach (Rect work in new[] { new Rect(0, 0, 1920, 1040), new Rect(-1920, -200, -1, 881), new Rect(40, 70, 1121, 1991) })
         {
             Rect left = WindowManager.Half(work, false), right = WindowManager.Half(work, true);
             Check(left.Left == work.Left && right.Right == work.Right && left.Right == right.Left
                 && left.Width + right.Width == work.Width && left.Top == work.Top && right.Bottom == work.Bottom,
                 $"Halves cover work area without gaps or overlap: {work}");
+            Rect topLeft = WindowManager.TileBounds(work, WindowAction.TopLeft), topRight = WindowManager.TileBounds(work, WindowAction.TopRight);
+            Rect bottomLeft = WindowManager.TileBounds(work, WindowAction.BottomLeft), bottomRight = WindowManager.TileBounds(work, WindowAction.BottomRight);
+            Check(topLeft.Left == work.Left && topLeft.Top == work.Top && topRight.Right == work.Right
+                && bottomLeft.Left == work.Left && bottomLeft.Bottom == work.Bottom && bottomRight.Right == work.Right
+                && topRight.Top == work.Top && bottomRight.Bottom == work.Bottom
+                && topLeft.Right == topRight.Left && bottomLeft.Right == bottomRight.Left
+                && topLeft.Bottom == bottomLeft.Top && topRight.Bottom == bottomRight.Top
+                && topLeft.Right == bottomLeft.Right && topLeft.Bottom == topRight.Bottom
+                && Math.Abs(topLeft.Width - topRight.Width) <= 1 && Math.Abs(topLeft.Height - bottomLeft.Height) <= 1,
+                $"Quarters partition work area evenly without gaps or overlap: {work}");
         }
     }
 
@@ -106,9 +118,30 @@ internal static class Program
             UnregisterHotKey(blocker.Handle, 43);
         }
         finally { UnregisterHotKey(blocker.Handle, 42); }
-        using (var manager = new HotkeyManager()) Check(manager.SetEnabled(true).All(s => s.Registered), "Resume acquires all four shortcuts");
-        Check(RegisterHotKey(blocker.Handle, 44, ModControl | ModAlt | ModNoRepeat, 0x28), "Dispose releases global shortcuts");
-        UnregisterHotKey(blocker.Handle, 44);
+        Check(RegisterHotKey(blocker.Handle, 45, ModControl | ModAlt | ModNoRepeat, 0x31), "Reserve top-left shortcut for corner conflict test");
+        try
+        {
+            using var manager = new HotkeyManager();
+            var statuses = manager.SetEnabled(true);
+            Check(!statuses.Single(s => s.Binding.Action == WindowAction.TopLeft).Registered
+                && statuses.Where(s => s.Binding.Action != WindowAction.TopLeft).All(s => s.Registered),
+                "Corner conflict is isolated from the other seven shortcuts");
+            manager.SetEnabled(false);
+            foreach (HotkeyBinding binding in HotkeyManager.Bindings.Where(b => b.Action != WindowAction.TopLeft))
+            {
+                bool acquired = RegisterHotKey(blocker.Handle, 46, ModControl | ModAlt | ModNoRepeat, binding.Key);
+                if (acquired) UnregisterHotKey(blocker.Handle, 46);
+                Check(acquired, $"Pause releases {binding.Label}");
+            }
+        }
+        finally { UnregisterHotKey(blocker.Handle, 45); }
+        using (var manager = new HotkeyManager()) Check(manager.SetEnabled(true).All(s => s.Registered), "Resume acquires all eight shortcuts");
+        foreach (HotkeyBinding binding in HotkeyManager.Bindings)
+        {
+            bool acquired = RegisterHotKey(blocker.Handle, 44, ModControl | ModAlt | ModNoRepeat, binding.Key);
+            if (acquired) UnregisterHotKey(blocker.Handle, 44);
+            Check(acquired, $"Dispose releases {binding.Label}");
+        }
     }
 
     private static async Task RunNativeTestsAsync()
@@ -133,10 +166,30 @@ internal static class Program
             Check(!IsZoomed(a) && WindowManager.Near(Placement(a).NormalPosition, originalA.NormalPosition), "Restore preserves original normal position across chained commands");
             Check((await manager.ExecuteAsync(WindowAction.Restore, a)).Success && WindowManager.Near(Placement(a).NormalPosition, originalA.NormalPosition), "Repeated restore is harmless");
 
+            foreach (WindowAction corner in Corners)
+            {
+                Check((await manager.ExecuteAsync(corner, a)).Success
+                    && WindowManager.Near(WindowManager.GetVisibleBounds(a), WindowManager.TileBounds(monitor.Work, corner)),
+                    $"WPF visible frame matches {corner} quarter");
+                var secondMonitor = MonitorInfo.Create();
+                Check(GetMonitorInfo(MonitorFromWindow(b, MonitorDefaultToNearest), ref secondMonitor)
+                    && (await manager.ExecuteAsync(corner, b)).Success
+                    && WindowManager.Near(WindowManager.GetVisibleBounds(b), WindowManager.TileBounds(secondMonitor.Work, corner)),
+                    $"WinForms visible frame matches {corner} quarter");
+            }
+            Check((await manager.ExecuteAsync(WindowAction.Left, a)).Success
+                && (await manager.ExecuteAsync(WindowAction.Maximize, a)).Success
+                && (await manager.ExecuteAsync(WindowAction.Restore, a)).Success
+                && WindowManager.Near(Placement(a).NormalPosition, originalA.NormalPosition),
+                "Corners, half, maximize, restore retain the original position");
+            Check((await manager.ExecuteAsync(WindowAction.Restore, b)).Success
+                && WindowManager.Near(Placement(b).NormalPosition, originalB.NormalPosition),
+                "Corner sequence restores the second window independently");
+
             Check(ShowWindowAsync(a, SwMaximize), "Set initial maximized state");
             await UntilAsync(() => IsZoomed(a));
             await Task.Delay(150);
-            Check((await manager.ExecuteAsync(WindowAction.Left, a)).Success && !IsZoomed(a), "Snap initially maximized window");
+            Check((await manager.ExecuteAsync(WindowAction.BottomRight, a)).Success && !IsZoomed(a), "Corner snap initially maximized window");
             Check((await manager.ExecuteAsync(WindowAction.Restore, a)).Success && IsZoomed(a), "Restore returns initially maximized window to maximized state");
             Check(WindowManager.Near(Placement(a).NormalPosition, originalA.NormalPosition), "Initially maximized window retains its normal restore bounds");
             Check((await manager.ExecuteAsync(WindowAction.Restore, a)).Success && !IsZoomed(a), "Restore without snapshot unmaximizes a window");
@@ -146,6 +199,7 @@ internal static class Program
             Check(WindowManager.Near(WindowManager.GetVisibleBounds(a), WindowManager.Half(monitor.Work, true)), "Restoring second window leaves first window untouched");
             Check((await manager.ExecuteAsync(WindowAction.Restore, a)).Success, "First window still has its snapshot");
             Check(!(await manager.ExecuteAsync(WindowAction.Left, fixedHandle)).Success, "Fixed-size window is rejected");
+            Check(!(await manager.ExecuteAsync(WindowAction.TopLeft, fixedHandle)).Success, "Fixed-size window rejects corner snapping");
             Check(!(await manager.ExecuteAsync(WindowAction.Left, 0)).Success, "Invalid target is rejected");
             first.Kill(); await first.WaitForExitAsync();
             Check(!(await manager.ExecuteAsync(WindowAction.Restore, a)).Success, "Closed window is rejected without crashing");

@@ -25,18 +25,22 @@ public partial class MainWindow : Window
             TextBlock label = status.Binding.Action switch
             {
                 WindowAction.Left => LeftStatus, WindowAction.Right => RightStatus,
-                WindowAction.Maximize => MaximizeStatus, _ => RestoreStatus
+                WindowAction.Maximize => MaximizeStatus, WindowAction.Restore => RestoreStatus,
+                WindowAction.TopLeft => TopLeftStatus, WindowAction.TopRight => TopRightStatus,
+                WindowAction.BottomLeft => BottomLeftStatus, WindowAction.BottomRight => BottomRightStatus,
+                _ => throw new ArgumentOutOfRangeException(nameof(statuses))
             };
             label.Text = !enabled ? "Paused" : status.Registered ? "Ready" : $"Unavailable · error {status.Error}";
             label.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(
                 enabled && !status.Registered ? "#FFBD89" : "#90A7B7"));
             if (status.Registered) available++;
         }
-        StatusBadge.Text = !enabled ? "PAUSED" : available == 4 ? "ACTIVE" : "CONFLICT";
+        bool allAvailable = available == HotkeyManager.Bindings.Length;
+        StatusBadge.Text = !enabled ? "PAUSED" : allAvailable ? "ACTIVE" : "CONFLICT";
         StatusBadge.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(
-            enabled && available == 4 ? "#71E6C0" : "#FFBD89"));
+            enabled && allAvailable ? "#71E6C0" : "#FFBD89"));
         PauseButton.Content = enabled ? "Pause shortcuts" : "Resume shortcuts";
-        if (enabled && available < 4)
+        if (enabled && !allAvailable)
             SetActivity("Some shortcuts are unavailable. Close the app using those keys, then pause and resume to retry.");
     }
 

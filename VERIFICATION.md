@@ -2,6 +2,19 @@
 
 Release build: KeyTile 0.1.0, C# / WPF, net10.0-windows.
 
+## Corners increment
+
+- `Build.ps1` built and published with zero warnings/errors; all 61 checks passed.
+- Added Basics and Corners tabs, with global Ctrl + Alt + 1–4 number-row shortcuts for the four quarters.
+- Quarter geometry covers even and odd dimensions, negative origins, and portrait-shaped work areas without gaps or overlap.
+- Native WPF and WinForms fixtures fit all four quarters. Corners → half → maximize → restore preserves the original position; corner snapping also restores an initially maximized window correctly.
+- A corner shortcut conflict leaves the other seven shortcuts available. Pause and disposal release corner and basic shortcuts.
+- Fixed-size windows reject corner commands.
+- Visually inspected both tabs and verified the published app's Ctrl + Alt + 1–4 shortcuts through Windows Computer Use. Native measurements confirmed 960 × 516 frames at (0, 0), (960, 0), (0, 516), and (960, 516) on the 1920 × 1032 work area. Ctrl + Alt + Down restored the fixture's original (180, 110), 620 × 400 placement.
+- The Corners panel shows Paused for all four rows when paused. An independent hotkey probe acquired all eight keys while paused and none after resume.
+
+The sections below record the original prototype verification. The current automated output is in `artifacts\test-results.txt`.
+
 ## Project-local development setup
 
 The relocated project was verified using only its own `.tools\dotnet` SDK 10.0.402 and Desktop Runtime 10.0.13. Its scripts resolve their locations relative to the project folder; the pinned SDK, CLI state, package cache, and published output all live inside that folder.
