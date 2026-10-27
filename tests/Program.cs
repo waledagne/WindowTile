@@ -12,7 +12,7 @@ using static KeyTile.NativeMethods;
 using Forms = System.Windows.Forms;
 using Rect = KeyTile.NativeMethods.Rect;
 
-internal static class Program
+internal static partial class Program
 {
     private static int _passed;
     private static readonly WindowAction[] Corners =
@@ -82,6 +82,8 @@ internal static class Program
             TestThirdGeometry();
             TestPlacementGeometry();
             TestStartup();
+            TestShortcutSettings();
+            TestCustomHotkeys();
             TestHotkeyLifecycle();
             RunNativeTestsAsync().GetAwaiter().GetResult();
             Console.WriteLine($"PASS: {_passed} checks completed.");

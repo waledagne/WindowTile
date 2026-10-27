@@ -1,5 +1,8 @@
 using System;
 using System.IO;
+using System.Collections.Generic;
+using System.Security;
+using System.Text.Json;
 using System.Linq;
 using System.Threading;
 using System.Windows;
@@ -18,7 +21,8 @@ public partial class App : Application
     private Forms.ToolStripMenuItem? _pauseMenu;
     private MainWindow? _panel;
     private readonly WindowManager _windows = new();
-    private bool _enabled = true, _busy;
+    private readonly ShortcutSettings _shortcutSettings = new();
+    private bool _enabled = true, _busy, _editingShortcuts;
     internal bool IsExiting { get; private set; }
 
     protected override void OnStartup(StartupEventArgs e)
@@ -38,10 +42,19 @@ public partial class App : Application
         _showSignal = new EventWaitHandle(false, EventResetMode.AutoReset, @"Local\KeyTile.Prototype.Show");
         _panel = new MainWindow(this);
         MainWindow = _panel;
-        _hotkeys = new HotkeyManager();
+        string? settingsNotice = null;
+        HotkeyBinding[] bindings;
+        try { bindings = _shortcutSettings.Load(); }
+        catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException or SecurityException or JsonException or ArgumentException)
+        {
+            bindings = ShortcutSettings.Validate(HotkeyManager.Bindings);
+            settingsNotice = $"Could not load saved shortcuts; using defaults. {error.Message}";
+        }
+        _hotkeys = new HotkeyManager(bindings);
         _hotkeys.Pressed += HandleShortcut;
         CreateTray();
         RefreshShortcuts();
+        if (settingsNotice is not null) _panel.SetActivity(settingsNotice);
         _signalTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
         _signalTimer.Tick += (_, _) => { if (_showSignal.WaitOne(0)) _panel.ShowPanel(); };
         _signalTimer.Start();
@@ -75,17 +88,64 @@ public partial class App : Application
 
     private void RefreshShortcuts()
     {
-        if (_hotkeys is null) return;
-        var statuses = _hotkeys.SetEnabled(_enabled);
-        _panel?.UpdateShortcuts(_enabled, statuses);
+        if (_hotkeys is null || IsExiting) return;
+        bool active = _enabled && !_editingShortcuts;
+        var statuses = _hotkeys.SetEnabled(active);
+        _panel?.UpdateShortcuts(active, statuses);
         if (_pauseMenu is not null) _pauseMenu.Text = _enabled ? "Pause shortcuts" : "Resume shortcuts";
-        if (_tray is not null) _tray.Text = !_enabled ? "KeyTile · paused"
+        if (_tray is not null) _tray.Text = !active ? "KeyTile · paused"
             : statuses.All(x => x.Registered) ? "KeyTile · shortcuts active" : "KeyTile · shortcut conflict";
+    }
+
+    internal void CustomizeShortcuts()
+    {
+        if (_hotkeys is null || _panel is null || _editingShortcuts) return;
+        _editingShortcuts = true;
+        RefreshShortcuts();
+        try
+        {
+            var editor = new ShortcutEditor(this, _hotkeys.CurrentBindings);
+            editor.Completed += FinishShortcutEditing;
+            _panel.ShowShortcutEditor(editor);
+        }
+        catch { FinishShortcutEditing(false); throw; }
+    }
+
+    internal void FinishShortcutEditing(bool saved = false)
+    {
+        if (!_editingShortcuts) return;
+        _editingShortcuts = false;
+        _panel?.CloseShortcutEditor();
+        if (IsExiting) return;
+        RefreshShortcuts();
+        _panel?.SetActivity(saved ? "Shortcuts saved. Focus another app to use them." : "Shortcut edits cancelled. Your shortcuts are unchanged.");
+    }
+
+    internal bool TrySaveShortcuts(IReadOnlyList<HotkeyBinding> bindings, out string message)
+    {
+        if (_hotkeys is null || !_editingShortcuts) throw new InvalidOperationException("Open the shortcut editor first.");
+        try
+        {
+            if (!_hotkeys.TryUpdateBindings(bindings, () => _shortcutSettings.Save(bindings), out var statuses))
+            {
+                message = "Unavailable: " + string.Join(", ", statuses.Where(status => !status.Registered)
+                    .Select(status => $"{ShortcutSettings.ActionName(status.Binding.Action)} ({status.Binding.Label})"))
+                    + ". Close the app using those keys or choose another combination.";
+                return false;
+            }
+            message = "Shortcuts saved.";
+            return true;
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException or SecurityException or ArgumentException)
+        {
+            message = $"Could not save shortcuts: {error.Message}";
+            return false;
+        }
     }
 
     private async void HandleShortcut(WindowAction action, nint window)
     {
-        if (!_enabled || _busy || IsExiting) return;
+        if (!_enabled || _editingShortcuts || _busy || IsExiting) return;
         _busy = true;
         try
         {

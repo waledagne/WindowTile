@@ -53,7 +53,8 @@
       <Setter Property="Padding" Value="12,6" /><Setter Property="VerticalAlignment" Value="Center" />
     </Style>
   </Window.Resources>
-  <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+  <Grid>
+  <ScrollViewer x:Name="MainPanel" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
     <Grid Margin="30,26,30,24">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
@@ -84,77 +85,77 @@
         <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
           <Grid Width="27" Height="22" HorizontalAlignment="Left"><Border BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="12" HorizontalAlignment="Left" Background="#71E6C0" CornerRadius="3,0,0,3" Margin="2" /></Grid>
           <StackPanel Grid.Column="1"><TextBlock Text="Left half" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="LeftStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
-          <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + ←" FontSize="13" FontFamily="Consolas" /></Border>
+          <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock x:Name="LeftShortcut" Text="Ctrl + Alt + ←" FontSize="13" FontFamily="Consolas" /></Border>
         </Grid></Border>
         <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
           <Grid Width="27" Height="22" HorizontalAlignment="Left"><Border BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="12" HorizontalAlignment="Right" Background="#71E6C0" CornerRadius="0,3,3,0" Margin="2" /></Grid>
           <StackPanel Grid.Column="1"><TextBlock Text="Right half" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="RightStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
-          <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + →" FontSize="13" FontFamily="Consolas" /></Border>
+          <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock x:Name="RightShortcut" Text="Ctrl + Alt + →" FontSize="13" FontFamily="Consolas" /></Border>
         </Grid></Border>
         <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
           <Border Width="27" Height="22" HorizontalAlignment="Left" BorderBrush="#71E6C0" BorderThickness="2" CornerRadius="3" />
           <StackPanel Grid.Column="1"><TextBlock Text="Maximize" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="MaximizeStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
-          <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + ↑" FontSize="13" FontFamily="Consolas" /></Border>
+          <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock x:Name="MaximizeShortcut" Text="Ctrl + Alt + ↑" FontSize="13" FontFamily="Consolas" /></Border>
         </Grid></Border>
         <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
           <Grid Width="27" Height="25" HorizontalAlignment="Left"><Border Width="21" Height="17" HorizontalAlignment="Right" VerticalAlignment="Top" BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="21" Height="17" HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="#192630" BorderBrush="#71E6C0" BorderThickness="2" CornerRadius="3" /></Grid>
           <StackPanel Grid.Column="1"><TextBlock Text="Restore" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="RestoreStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
-          <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + ↓" FontSize="13" FontFamily="Consolas" /></Border>
+          <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock x:Name="RestoreShortcut" Text="Ctrl + Alt + ↓" FontSize="13" FontFamily="Consolas" /></Border>
         </Grid></Border>
         </StackPanel>
         </TabItem>
         <TabItem Header="Corners">
         <StackPanel TextElement.Foreground="#F2F6F8">
-          <TextBlock Text="Four equal tiles on the current monitor. Use the number row, 1–4." Foreground="#A5B7C3" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,12" />
+          <TextBlock Text="Four equal tiles on the current monitor." Foreground="#A5B7C3" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,12" />
           <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
             <Grid Width="27" Height="22" HorizontalAlignment="Left"><Border BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="10" Height="8" HorizontalAlignment="Left" VerticalAlignment="Top" Background="#71E6C0" CornerRadius="1" Margin="3" /></Grid>
             <StackPanel Grid.Column="1"><TextBlock Text="Top-left quarter" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="TopLeftStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
-            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + 1" FontSize="13" FontFamily="Consolas" /></Border>
+            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock x:Name="TopLeftShortcut" Text="Ctrl + Alt + 1" FontSize="13" FontFamily="Consolas" /></Border>
           </Grid></Border>
           <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
             <Grid Width="27" Height="22" HorizontalAlignment="Left"><Border BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="10" Height="8" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#71E6C0" CornerRadius="1" Margin="3" /></Grid>
             <StackPanel Grid.Column="1"><TextBlock Text="Top-right quarter" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="TopRightStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
-            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + 2" FontSize="13" FontFamily="Consolas" /></Border>
+            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock x:Name="TopRightShortcut" Text="Ctrl + Alt + 2" FontSize="13" FontFamily="Consolas" /></Border>
           </Grid></Border>
           <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
             <Grid Width="27" Height="22" HorizontalAlignment="Left"><Border BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="10" Height="8" HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="#71E6C0" CornerRadius="1" Margin="3" /></Grid>
             <StackPanel Grid.Column="1"><TextBlock Text="Bottom-left quarter" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="BottomLeftStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
-            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + 3" FontSize="13" FontFamily="Consolas" /></Border>
+            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock x:Name="BottomLeftShortcut" Text="Ctrl + Alt + 3" FontSize="13" FontFamily="Consolas" /></Border>
           </Grid></Border>
           <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
             <Grid Width="27" Height="22" HorizontalAlignment="Left"><Border BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="10" Height="8" HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="#71E6C0" CornerRadius="1" Margin="3" /></Grid>
             <StackPanel Grid.Column="1"><TextBlock Text="Bottom-right quarter" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="BottomRightStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
-            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + 4" FontSize="13" FontFamily="Consolas" /></Border>
+            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock x:Name="BottomRightShortcut" Text="Ctrl + Alt + 4" FontSize="13" FontFamily="Consolas" /></Border>
           </Grid></Border>
         </StackPanel>
         </TabItem>
         <TabItem Header="Thirds">
         <StackPanel TextElement.Foreground="#F2F6F8">
-          <TextBlock Text="Three columns or a wider tile. Use the number row, 5–9." Foreground="#A5B7C3" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,12" />
+          <TextBlock Text="Three columns or a wider tile on the current monitor." Foreground="#A5B7C3" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,12" />
           <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
             <Grid Width="27" Height="22" HorizontalAlignment="Left"><Border BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="6" HorizontalAlignment="Left" Background="#71E6C0" CornerRadius="1" Margin="3" /></Grid>
             <StackPanel Grid.Column="1"><TextBlock Text="Left third" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="LeftThirdStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
-            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + 5" FontSize="13" FontFamily="Consolas" /></Border>
+            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock x:Name="LeftThirdShortcut" Text="Ctrl + Alt + 5" FontSize="13" FontFamily="Consolas" /></Border>
           </Grid></Border>
           <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
             <Grid Width="27" Height="22" HorizontalAlignment="Left"><Border BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="6" HorizontalAlignment="Center" Background="#71E6C0" CornerRadius="1" Margin="3" /></Grid>
             <StackPanel Grid.Column="1"><TextBlock Text="Center third" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="CenterThirdStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
-            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + 6" FontSize="13" FontFamily="Consolas" /></Border>
+            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock x:Name="CenterThirdShortcut" Text="Ctrl + Alt + 6" FontSize="13" FontFamily="Consolas" /></Border>
           </Grid></Border>
           <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
             <Grid Width="27" Height="22" HorizontalAlignment="Left"><Border BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="6" HorizontalAlignment="Right" Background="#71E6C0" CornerRadius="1" Margin="3" /></Grid>
             <StackPanel Grid.Column="1"><TextBlock Text="Right third" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="RightThirdStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
-            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + 7" FontSize="13" FontFamily="Consolas" /></Border>
+            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock x:Name="RightThirdShortcut" Text="Ctrl + Alt + 7" FontSize="13" FontFamily="Consolas" /></Border>
           </Grid></Border>
           <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
             <Grid Width="27" Height="22" HorizontalAlignment="Left"><Border BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="14" HorizontalAlignment="Left" Background="#71E6C0" CornerRadius="1" Margin="3" /></Grid>
             <StackPanel Grid.Column="1"><TextBlock Text="Left two-thirds" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="LeftTwoThirdsStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
-            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + 8" FontSize="13" FontFamily="Consolas" /></Border>
+            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock x:Name="LeftTwoThirdsShortcut" Text="Ctrl + Alt + 8" FontSize="13" FontFamily="Consolas" /></Border>
           </Grid></Border>
           <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
             <Grid Width="27" Height="22" HorizontalAlignment="Left"><Border BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="14" HorizontalAlignment="Right" Background="#71E6C0" CornerRadius="1" Margin="3" /></Grid>
             <StackPanel Grid.Column="1"><TextBlock Text="Right two-thirds" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="RightTwoThirdsStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
-            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + 9" FontSize="13" FontFamily="Consolas" /></Border>
+            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock x:Name="RightTwoThirdsShortcut" Text="Ctrl + Alt + 9" FontSize="13" FontFamily="Consolas" /></Border>
           </Grid></Border>
         </StackPanel>
         </TabItem>
@@ -164,22 +165,22 @@
           <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
             <Grid Width="27" Height="22" HorizontalAlignment="Left"><Border BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="12" Height="10" HorizontalAlignment="Center" VerticalAlignment="Center" BorderBrush="#71E6C0" BorderThickness="2" CornerRadius="1" /></Grid>
             <StackPanel Grid.Column="1"><TextBlock Text="Center · keep size" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="CenterStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
-            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + Shift + C" FontSize="13" FontFamily="Consolas" /></Border>
+            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock x:Name="CenterShortcut" Text="Ctrl + Alt + Shift + C" FontSize="13" FontFamily="Consolas" /></Border>
           </Grid></Border>
           <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
             <Grid Width="27" Height="22" HorizontalAlignment="Left"><Border BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="11" Height="8" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#71E6C0" CornerRadius="1" /></Grid>
             <StackPanel Grid.Column="1"><TextBlock Text="Small · 50%" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="ResizeSmallStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
-            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + Shift + S" FontSize="13" FontFamily="Consolas" /></Border>
+            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock x:Name="ResizeSmallShortcut" Text="Ctrl + Alt + Shift + S" FontSize="13" FontFamily="Consolas" /></Border>
           </Grid></Border>
           <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
             <Grid Width="27" Height="22" HorizontalAlignment="Left"><Border BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="15" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#71E6C0" CornerRadius="1" /></Grid>
             <StackPanel Grid.Column="1"><TextBlock Text="Medium · 70%" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="ResizeMediumStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
-            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + Shift + M" FontSize="13" FontFamily="Consolas" /></Border>
+            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock x:Name="ResizeMediumShortcut" Text="Ctrl + Alt + Shift + M" FontSize="13" FontFamily="Consolas" /></Border>
           </Grid></Border>
           <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
             <Grid Width="27" Height="22" HorizontalAlignment="Left"><Border BorderBrush="#7892A5" BorderThickness="1" CornerRadius="3" /><Border Width="19" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#71E6C0" CornerRadius="1" /></Grid>
             <StackPanel Grid.Column="1"><TextBlock Text="Large · 90%" FontSize="15" FontWeight="SemiBold" /><TextBlock x:Name="ResizeLargeStatus" Text="Ready" FontSize="11" Foreground="#90A7B7" Margin="0,3,0,0" /></StackPanel>
-            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock Text="Ctrl + Alt + Shift + L" FontSize="13" FontFamily="Consolas" /></Border>
+            <Border Grid.Column="2" Style="{StaticResource Keycap}"><TextBlock x:Name="ResizeLargeShortcut" Text="Ctrl + Alt + Shift + L" FontSize="13" FontFamily="Consolas" /></Border>
           </Grid></Border>
           <TextBlock Text="Presets set both width and height to a percentage of the work area, then center the window." Foreground="#A5B7C3" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0" />
         </StackPanel>
@@ -194,6 +195,7 @@
         <Button Grid.Column="2" Content="Exit" Click="Exit_Click" />
       </Grid>
       <StackPanel Grid.Row="5" Margin="0,16,0,0">
+        <Button Content="Customize keyboard shortcuts" HorizontalAlignment="Left" Click="Customize_Click" Margin="0,0,0,16" />
         <CheckBox x:Name="StartupCheckBox" Content="Start KeyTile when I sign in" Foreground="#F2F6F8" FontSize="13"
                   Checked="Startup_Changed" Unchecked="Startup_Changed" />
         <TextBlock Text="Starts quietly in the tray, with your shortcuts ready." Foreground="#90A7B7" FontSize="11" Margin="20,5,0,0" />
@@ -201,4 +203,6 @@
       <TextBlock Grid.Row="6" x:Name="ActivityText" Text="Ready. Switch to another app to try a shortcut." Foreground="#90A7B7" FontSize="12" Margin="0,18,0,0" TextWrapping="Wrap" LineHeight="17" />
     </Grid>
   </ScrollViewer>
+  <ContentControl x:Name="ShortcutEditorHost" Visibility="Collapsed" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
+  </Grid>
 </Window>

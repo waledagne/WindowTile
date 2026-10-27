@@ -20,7 +20,7 @@ public partial class MainWindow : Window
         _app = app;
         Activated += (_, _) => RefreshStartup();
         RefreshStartup();
-        StateChanged += (_, _) => { if (WindowState == WindowState.Minimized) Hide(); };
+        StateChanged += (_, _) => { if (WindowState == WindowState.Minimized) { _app.FinishShortcutEditing(); Hide(); } };
     }
 
     private static StartupManager Startup() => new(Environment.ProcessPath
@@ -59,6 +59,7 @@ public partial class MainWindow : Window
         int available = 0;
         foreach (HotkeyStatus status in statuses)
         {
+            if (FindName($"{status.Binding.Action}Shortcut") is TextBlock shortcut) shortcut.Text = status.Binding.Label;
             TextBlock label = status.Binding.Action switch
             {
                 WindowAction.Left => LeftStatus, WindowAction.Right => RightStatus,
@@ -87,6 +88,18 @@ public partial class MainWindow : Window
     }
 
     internal void SetActivity(string message) => ActivityText.Text = message;
+    internal void ShowShortcutEditor(ShortcutEditor editor)
+    {
+        MainPanel.Visibility = Visibility.Collapsed;
+        ShortcutEditorHost.Content = editor;
+        ShortcutEditorHost.Visibility = Visibility.Visible;
+    }
+    internal void CloseShortcutEditor()
+    {
+        ShortcutEditorHost.Visibility = Visibility.Collapsed;
+        ShortcutEditorHost.Content = null;
+        MainPanel.Visibility = Visibility.Visible;
+    }
     internal void ShowPanel()
     {
         Show();
@@ -95,10 +108,11 @@ public partial class MainWindow : Window
     }
     protected override void OnClosing(CancelEventArgs e)
     {
-        if (!_app.IsExiting) { e.Cancel = true; Hide(); }
+        if (!_app.IsExiting) { e.Cancel = true; _app.FinishShortcutEditing(); Hide(); }
         base.OnClosing(e);
     }
     private void Pause_Click(object sender, RoutedEventArgs e) => _app.ToggleShortcuts();
+    private void Customize_Click(object sender, RoutedEventArgs e) => _app.CustomizeShortcuts();
     private void Hide_Click(object sender, RoutedEventArgs e) => Hide();
     private void Exit_Click(object sender, RoutedEventArgs e) => _app.ExitApp();
 }

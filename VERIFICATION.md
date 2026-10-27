@@ -1,8 +1,18 @@
 # Verification — 27 October 2026
 
-Current release: KeyTile 0.2.0, C# / WPF, net10.0-windows, Windows x64.
+Current release: KeyTile 0.3.0, C# / WPF, net10.0-windows, Windows x64.
 
-## Installation and sign-in startup
+## Customizable shortcuts
+
+- Release build succeeds with zero warnings/errors. All 242 automated checks pass.
+- Added a category-based editor for all seventeen actions, with shortcut capture, Save, Cancel, and Restore defaults. The main panel displays the active shortcut labels.
+- Settings tests cover missing files, persistent custom keys/modifiers, generated labels, duplicate and incomplete action sets, invalid IDs/actions/keys/modifiers, malformed and oversized JSON, recovery through defaults, and preserving previous data on rejected saves.
+- Native registration tests verify releasing an old shortcut, owning its replacement, rejecting another window's occupied shortcut before persistence, restoring previous registrations after conflicts or save errors, and retaining the paused state when saving or resetting defaults.
+- Personal settings live outside the installation folder in `%LOCALAPPDATA%\KeyTile\shortcuts.json`; missing or invalid profiles fall back to defaults, and invalid files remain untouched until a valid save.
+- Checked the installed 0.3.0 editor through Windows Computer Use: duplicate combinations disable Save, recording Ctrl + Alt + Shift + J works, Cancel leaves the profile untouched, and Save updates the main panel and JSON file. The custom Left shortcut moved a real test window to the exact (0, 0), 960 × 1032 left half, and Restore returned its original placement. The custom label survived an app restart.
+- Restore defaults and Save returned the profile to its defaults while preserving Pause. An independent native probe acquired all seventeen combinations while paused and confirmed KeyTile owned all seventeen after Resume. The app's startup checkbox remained enabled after the installer upgrade.
+
+## Installation and sign-in startup (0.2.0 increment)
 
 - All 175 application checks passed, including startup path validation, quiet tray arguments, enable/disable, long-path rejection, and preserving other apps' or another KeyTile copy's shortcuts. Startup tests use an isolated temporary folder.
 - Standalone publishing bundles the .NET runtime and WPF native libraries in `KeyTile.exe`. MSI and portable ZIP builds include runtime license notices and SHA-256 hashes.

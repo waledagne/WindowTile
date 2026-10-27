@@ -1,0 +1,62 @@
+<UserControl x:Class="KeyTile.ShortcutEditor"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Background="#101820" Foreground="#F2F6F8" FontFamily="Segoe UI" PreviewKeyDown="Editor_KeyDown">
+  <UserControl.Resources>
+    <Style TargetType="Button">
+      <Setter Property="Background" Value="#23323E" /><Setter Property="Foreground" Value="#F2F6F8" />
+      <Setter Property="Padding" Value="16,10" /><Setter Property="Margin" Value="0,0,8,0" />
+      <Setter Property="BorderThickness" Value="0" /><Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+        <Border x:Name="ButtonBorder" CornerRadius="7" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+          <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+        </Border>
+        <ControlTemplate.Triggers>
+          <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ButtonBorder" Property="Opacity" Value="0.8" /></Trigger>
+          <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="ButtonBorder" Property="BorderBrush" Value="#71E6C0" /><Setter TargetName="ButtonBorder" Property="BorderThickness" Value="2" /></Trigger>
+          <Trigger Property="IsEnabled" Value="False"><Setter TargetName="ButtonBorder" Property="Opacity" Value="0.4" /></Trigger>
+        </ControlTemplate.Triggers>
+      </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style TargetType="TextBox">
+      <Setter Property="Background" Value="#253643" /><Setter Property="Foreground" Value="#F2F6F8" />
+      <Setter Property="BorderBrush" Value="#486170" /><Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Padding" Value="10,8" /><Setter Property="FontFamily" Value="Consolas" />
+      <Setter Property="FontSize" Value="13" /><Setter Property="IsReadOnly" Value="True" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Style.Triggers><Trigger Property="IsKeyboardFocused" Value="True"><Setter Property="BorderBrush" Value="#71E6C0" /><Setter Property="BorderThickness" Value="2" /></Trigger></Style.Triggers>
+    </Style>
+  </UserControl.Resources>
+  <Grid Margin="24">
+    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+    <StackPanel Margin="0,0,0,12">
+      <TextBlock Text="Your shortcuts" FontSize="24" FontWeight="SemiBold" />
+      <TextBlock Text="Select a shortcut field, then press a combination with Ctrl or Alt. Shift is optional." Foreground="#A5B7C3" Margin="0,8,0,0" TextWrapping="Wrap" />
+      <TextBlock Text="Shortcuts are paused while this editor is open. Tab moves between fields; Esc cancels." Foreground="#A5B7C3" Margin="0,6,0,0" TextWrapping="Wrap" />
+    </StackPanel>
+    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+      <ItemsControl x:Name="ShortcutRows">
+        <ItemsControl.ItemTemplate><DataTemplate>
+          <StackPanel>
+            <TextBlock Text="{Binding CategoryHeader}" Foreground="#71E6C0" FontSize="13" FontWeight="SemiBold" Margin="0,16,0,8">
+              <TextBlock.Style><Style TargetType="TextBlock"><Style.Triggers><DataTrigger Binding="{Binding CategoryHeader}" Value=""><Setter Property="Visibility" Value="Collapsed" /></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+            </TextBlock>
+            <Grid Margin="0,0,12,8">
+              <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
+              <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Margin="0,0,10,0" TextWrapping="Wrap" />
+              <TextBox Grid.Column="1" Text="{Binding Label, Mode=OneWay}" Tag="{Binding}"
+                       AutomationProperties.Name="{Binding AccessibleName}"
+                       ToolTip="Select this field and press the new shortcut" PreviewKeyDown="Capture_KeyDown" />
+            </Grid>
+          </StackPanel>
+        </DataTemplate></ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+    <TextBlock Grid.Row="2" x:Name="ErrorText" Foreground="#FFBD89" TextWrapping="Wrap" Margin="0,12,0,12" MinHeight="32" AutomationProperties.LiveSetting="Polite" />
+    <Grid Grid.Row="3"><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+      <Button Content="Restore defaults" HorizontalAlignment="Left" Click="Reset_Click" />
+      <Button Grid.Column="1" Content="Cancel" Click="Cancel_Click" />
+      <Button Grid.Column="2" x:Name="SaveButton" Content="Save shortcuts" Click="Save_Click" Background="#71E6C0" Foreground="#102D2A" Margin="0" />
+    </Grid>
+  </Grid>
+</UserControl>

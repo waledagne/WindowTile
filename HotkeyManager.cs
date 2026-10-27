@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Interop;
 
@@ -34,9 +35,13 @@ internal sealed class HotkeyManager : IDisposable
     ];
     private readonly HwndSource _source;
     private readonly List<int> _registered = new();
+    private HotkeyBinding[] _bindings;
+    private bool _enabled;
+    internal IReadOnlyList<HotkeyBinding> CurrentBindings => Array.AsReadOnly(_bindings);
     internal event Action<WindowAction, nint>? Pressed;
-    internal HotkeyManager()
+    internal HotkeyManager(IReadOnlyList<HotkeyBinding>? bindings = null)
     {
+        _bindings = ShortcutSettings.Validate(bindings ?? Bindings);
         _source = new HwndSource(new HwndSourceParameters("KeyTile shortcuts")
         { ParentWindow = new nint(-3), Width = 0, Height = 0, WindowStyle = 0 });
         _source.AddHook(WindowProcedure);
@@ -44,10 +49,11 @@ internal sealed class HotkeyManager : IDisposable
 
     internal IReadOnlyList<HotkeyStatus> SetEnabled(bool enabled)
     {
+        _enabled = enabled;
         foreach (int id in _registered) NativeMethods.UnregisterHotKey(_source.Handle, id);
         _registered.Clear();
         var statuses = new List<HotkeyStatus>();
-        foreach (HotkeyBinding binding in Bindings)
+        foreach (HotkeyBinding binding in _bindings)
         {
             bool registered = enabled && NativeMethods.RegisterHotKey(_source.Handle, binding.Id,
                 binding.Modifiers | NativeMethods.ModNoRepeat, binding.Key);
@@ -58,12 +64,43 @@ internal sealed class HotkeyManager : IDisposable
         return statuses;
     }
 
+    // Probe all combinations before persistence; failures restore the previous bindings and pause state.
+    internal bool TryUpdateBindings(IReadOnlyList<HotkeyBinding> bindings, Action persist, out IReadOnlyList<HotkeyStatus> statuses)
+    {
+        HotkeyBinding[] candidate = ShortcutSettings.Validate(bindings);
+        ArgumentNullException.ThrowIfNull(persist);
+        HotkeyBinding[] previous = _bindings;
+        bool wasEnabled = _enabled, accepted = false;
+        SetEnabled(false);
+        _bindings = candidate;
+        try
+        {
+            statuses = SetEnabled(true);
+            if (statuses.Any(status => !status.Registered)) return false;
+            persist();
+            accepted = true;
+            return true;
+        }
+        finally
+        {
+            if (!accepted)
+            {
+                SetEnabled(false);
+                _bindings = previous;
+                SetEnabled(wasEnabled);
+            }
+            else if (!wasEnabled) SetEnabled(false);
+        }
+    }
+
     private nint WindowProcedure(nint hwnd, int message, nint wParam, nint lParam, ref bool handled)
     {
         if (message == NativeMethods.WmHotkey && _registered.Contains(wParam.ToInt32()))
         {
-            foreach (HotkeyBinding binding in Bindings)
-                if (binding.Id == wParam.ToInt32())
+            foreach (HotkeyBinding binding in _bindings)
+                if (binding.Id == wParam.ToInt32()
+                    && (uint)((lParam.ToInt64() >> 16) & 0xFFFF) == binding.Key
+                    && ((uint)lParam.ToInt64() & 0x0007) == binding.Modifiers)
                 {
                     handled = true;
                     Pressed?.Invoke(binding.Action, NativeMethods.GetForegroundWindow());

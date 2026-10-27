@@ -4,13 +4,21 @@ A C# / WPF window manager prototype for Windows 11. It moves the focused app win
 
 ## Install and start automatically
 
-Open `artifacts\release\KeyTile-0.2.0-win-x64.msi` to install KeyTile for your Windows account. The installer includes the .NET runtime, adds desktop and Start menu shortcuts, and installs to `%LOCALAPPDATA%\Programs\KeyTile`. You do not need the source folder, an SDK, or a separate .NET installation to run the installed app.
+Open `artifacts\release\KeyTile-0.3.0-win-x64.msi` to install KeyTile for your Windows account. The installer includes the .NET runtime, adds desktop and Start menu shortcuts, and installs to `%LOCALAPPDATA%\Programs\KeyTile`. You do not need the source folder, an SDK, or a separate .NET installation to run the installed app.
 
 Installation enables quiet tray startup at sign-in. Open KeyTile from its shortcut to see the panel. Use **Start KeyTile when I sign in** in the panel to turn startup on or off. To uninstall, exit KeyTile from its panel or tray menu, then use **Settings → Apps → Installed apps → KeyTile → Uninstall**. Uninstall removes the app, shortcuts, and startup entry.
 
-The portable alternative is `artifacts\release\KeyTile-0.2.0-win-x64-portable.zip`; extract it to a permanent folder and open `KeyTile.exe`. A portable copy starts automatically only if you enable the checkbox. Keep it in that folder while startup is enabled. If Windows Startup apps settings disables KeyTile, re-enable it there as well.
+The portable alternative is `artifacts\release\KeyTile-0.3.0-win-x64-portable.zip`; extract it to a permanent folder and open `KeyTile.exe`. A portable copy starts automatically only if you enable the checkbox. Keep it in that folder while startup is enabled. If Windows Startup apps settings disables KeyTile, re-enable it there as well.
 
 The MSI can be installed with `STARTUPENABLED=0` to opt out initially. An existing startup preference is remembered during an upgrade. Releases are currently unsigned; code signing and automatic updates are not configured.
+
+## Customize keyboard shortcuts
+
+Choose **Customize keyboard shortcuts** in the panel. Select an action's shortcut field, then press the new combination. All seventeen actions are editable, grouped by category. Include **Ctrl** or **Alt**; **Shift** is optional. Letters, number-row digits, function keys (except reserved F12), arrows, Space, Home, End, Page Up/Down, Insert, and Delete are supported. Windows-key combinations are excluded. Tab moves between fields and Esc cancels the editor.
+
+KeyTile pauses its shortcuts while the editor is open. **Save shortcuts** checks the complete set for duplicates and conflicts with other apps, then saves and applies it. A failed validation or save keeps the previous shortcuts. **Cancel** discards the draft. **Restore defaults** changes the draft; save to apply the defaults or cancel to keep your choices. Closing the editor restores the previous active or paused state.
+
+Choices are saved in `%LOCALAPPDATA%\KeyTile\shortcuts.json`, survive restarts and installer upgrades, and are shared by copies run under the same Windows account. Uninstall leaves this personal settings file in place. A missing file uses defaults; an invalid or unreadable file shows a notice and uses defaults without overwriting that file. Saving a valid set from the editor replaces it. The tables below list the default shortcuts; the panel always displays your current choices.
 
 ## Basics
 
@@ -30,7 +38,7 @@ The MSI can be installed with `STARTUPENABLED=0` to opt out initially. An existi
 | Ctrl + Alt + 3 | Snap to the bottom-left quarter of the current monitor |
 | Ctrl + Alt + 4 | Snap to the bottom-right quarter of the current monitor |
 
-Use the number row above the letters, rather than the numeric keypad. Corners divide the monitor's work area into four tiles, excluding the taskbar. Odd pixel dimensions give the extra pixel to the right or bottom tiles. Restore works across corners, halves, and maximize in the same sequence.
+The default corner shortcuts use the number row above the letters, rather than the numeric keypad. Corners divide the monitor's work area into four tiles, excluding the taskbar. Odd pixel dimensions give the extra pixel to the right or bottom tiles. Restore works across corners, halves, and maximize in the same sequence.
 
 ## Thirds
 
@@ -42,7 +50,7 @@ Use the number row above the letters, rather than the numeric keypad. Corners di
 | Ctrl + Alt + 8 | Snap to the left two-thirds of the current monitor |
 | Ctrl + Alt + 9 | Snap to the right two-thirds of the current monitor |
 
-Use the number row for these shortcuts too. All five tiles use the full height of the monitor's work area. Three columns share boundaries without gaps or overlap; widths that are not divisible by three produce columns that differ by at most one pixel. Each two-thirds tile combines two adjacent columns, so it fits beside the remaining third. Restore remembers the original placement across thirds, corners, halves, and maximize.
+The default Thirds shortcuts also use the number row. All five tiles use the full height of the monitor's work area. Three columns share boundaries without gaps or overlap; widths that are not divisible by three produce columns that differ by at most one pixel. Each two-thirds tile combines two adjacent columns, so it fits beside the remaining third. Restore remembers the original placement across thirds, corners, halves, and maximize.
 
 ## Window Placement
 
@@ -126,6 +134,7 @@ Release packaging installs the pinned WiX 6.0.2 tool into `.tools\wix` on first 
 
 - `WindowManager.cs`: layout calculations, per-window snapshots, native state changes, bounded asynchronous verification.
 - `HotkeyManager.cs`: global shortcut registration, conflict detection, cleanup, and a message-only Win32 window that survives hiding the panel.
+- `ShortcutSettings.cs` and `ShortcutEditor.xaml`: validated, persistent shortcut profiles and a category-based editor with key capture, cancellation, and defaults.
 - `NativeMethods.cs`: Win32 / DWM interop.
 - `App.xaml.cs`: application lifetime, single-instance signaling, pause/resume, and tray controls.
 - `MainWindow.xaml`: WPF shortcut panel and live status.
@@ -137,7 +146,7 @@ Monitor work areas exclude the taskbar. The manifest enables Per Monitor V2 DPI 
 
 ## Prototype limits
 
-- Shortcuts are fixed for this iteration. Shortcut editing and mouse snapping are future work.
+- Mouse snapping is future work. Shortcut combinations require Ctrl or Alt and do not support the Windows key or reserved F12.
 - Tool, desktop, and hidden/cloaked windows are skipped. Fixed-size windows support Center and Restore, but reject resize, tile, and maximize commands. Applications with large minimum sizes may not fit a tile or resize preset.
 - Elevated applications may require running KeyTile at the same privilege level. The app runs as the current user by default.
 - Mixed-DPI hardware, monitor removal during a command, remote desktop, and app-specific rendering behavior need broader compatibility testing. Snapshot identity uses window handle, process ID, and thread ID; rare reuse of all three within a running process is not yet tracked with window-destruction events.
