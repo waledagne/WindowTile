@@ -8,8 +8,8 @@ using static KeyTile.NativeMethods;
 
 internal static partial class Program
 {
-    private static bool SameBindings(HotkeyBinding[] a, HotkeyBinding[] b) => a.Select(x => (x.Id, x.Action, x.Key, x.Modifiers))
-        .SequenceEqual(b.Select(x => (x.Id, x.Action, x.Key, x.Modifiers)));
+    private static bool SameBindings(HotkeyBinding[] a, HotkeyBinding[] b) => a.Select(x => (x.Id, x.Action, x.Key, x.Modifiers, x.Enabled))
+        .SequenceEqual(b.Select(x => (x.Id, x.Action, x.Key, x.Modifiers, x.Enabled)));
 
     private static void TestShortcutSettings()
     {
@@ -46,7 +46,7 @@ internal static partial class Program
             ExpectRejected(() => ShortcutSettings.Validate(wrongIdentity), "Repeated actions are rejected");
             wrongIdentity[0] = custom[0] with { Action = (WindowAction)999 };
             ExpectRejected(() => ShortcutSettings.Validate(wrongIdentity), "Unknown actions are rejected");
-            foreach (string invalid in new[] { "{broken", "null", "{}", "{\"Version\":2,\"Shortcuts\":[]}",
+            foreach (string invalid in new[] { "{broken", "null", "{}", "{\"Version\":3,\"Shortcuts\":[]}",
                 "{\"Version\":1,\"Shortcuts\":[null]}", "{\"Version\":1,\"Shortcuts\":[{\"Action\":\"Unknown\"}]}" })
             {
                 File.WriteAllText(file, invalid);

@@ -9,7 +9,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\KeyTile.ico</ApplicationIcon>
     <AssemblyName>KeyTile</AssemblyName>
-    <Version>0.3.0</Version>
+    <Version>0.4.0</Version>
     <DefaultItemExcludes>$(DefaultItemExcludes);.tools\**;artifacts\**</DefaultItemExcludes>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <!-- WPF owns startup/DPI awareness; WinForms is used only for the tray icon. -->

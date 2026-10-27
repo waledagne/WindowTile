@@ -1,8 +1,16 @@
-# Verification — 27 October 2026
+# Verification — 28 October 2026
 
-Current release: KeyTile 0.3.0, C# / WPF, net10.0-windows, Windows x64.
+Current release: KeyTile 0.4.0, C# / WPF, net10.0-windows, Windows x64.
 
-## Customizable shortcuts
+## Individual shortcut enable/disable
+
+- All 285 automated checks pass. The Release build has zero warnings/errors.
+- Added an Enabled checkbox to each editor row, retaining its remembered combination when disabled. Disabled actions are excluded from registration and conflict checks. The main panel distinguishes Disabled from Paused, and an all-disabled profile displays ALL OFF.
+- Profile version 2 persists enabled flags. Tests verify backward-compatible loading of version 1 custom bindings without rewriting the file, disabled-state reload, validation of explicit version 2 flags, preserved data after rejection, all-disabled profiles, and restoring enabled defaults.
+- Native registration checks confirm that disabling one action frees only its combination, occupied disabled combinations do not block saving, re-enabling an occupied combination fails before persistence, save failures restore enabled flags, and Pause/Resume preserves individual choices. An all-disabled profile frees all seventeen combinations without reporting conflicts.
+- These results cover automated settings, editor-row notifications, and native registration tests. The 0.4.0 installed UI walkthrough has not been completed.
+
+## Customizable shortcuts (0.3.0 increment)
 
 - Release build succeeds with zero warnings/errors. All 242 automated checks pass.
 - Added a category-based editor for all seventeen actions, with shortcut capture, Save, Cancel, and Restore defaults. The main panel displays the active shortcut labels.

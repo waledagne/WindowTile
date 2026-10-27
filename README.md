@@ -1,14 +1,14 @@
 # WindowTile
 
-A C# / WPF window manager prototype for Windows 11. It moves the focused app window using seventeen global keyboard shortcuts, organized into **Basics**, **Corners**, **Thirds**, and **Window Placement** tabs. All shortcuts stay active regardless of the selected tab. The executable and tray app are currently named **KeyTile**.
+A C# / WPF window manager prototype for Windows 11. It moves the focused app window using seventeen configurable keyboard shortcuts, organized into **Basics**, **Corners**, **Thirds**, and **Window Placement** tabs. Enabled shortcuts work regardless of the selected tab. The executable and tray app are currently named **KeyTile**.
 
 ## Install and start automatically
 
-Open `artifacts\release\KeyTile-0.3.0-win-x64.msi` to install KeyTile for your Windows account. The installer includes the .NET runtime, adds desktop and Start menu shortcuts, and installs to `%LOCALAPPDATA%\Programs\KeyTile`. You do not need the source folder, an SDK, or a separate .NET installation to run the installed app.
+Open `artifacts\release\KeyTile-0.4.0-win-x64.msi` to install KeyTile for your Windows account. The installer includes the .NET runtime, adds desktop and Start menu shortcuts, and installs to `%LOCALAPPDATA%\Programs\KeyTile`. You do not need the source folder, an SDK, or a separate .NET installation to run the installed app.
 
 Installation enables quiet tray startup at sign-in. Open KeyTile from its shortcut to see the panel. Use **Start KeyTile when I sign in** in the panel to turn startup on or off. To uninstall, exit KeyTile from its panel or tray menu, then use **Settings → Apps → Installed apps → KeyTile → Uninstall**. Uninstall removes the app, shortcuts, and startup entry.
 
-The portable alternative is `artifacts\release\KeyTile-0.3.0-win-x64-portable.zip`; extract it to a permanent folder and open `KeyTile.exe`. A portable copy starts automatically only if you enable the checkbox. Keep it in that folder while startup is enabled. If Windows Startup apps settings disables KeyTile, re-enable it there as well.
+The portable alternative is `artifacts\release\KeyTile-0.4.0-win-x64-portable.zip`; extract it to a permanent folder and open `KeyTile.exe`. A portable copy starts automatically only if you enable the checkbox. Keep it in that folder while startup is enabled. If Windows Startup apps settings disables KeyTile, re-enable it there as well.
 
 The MSI can be installed with `STARTUPENABLED=0` to opt out initially. An existing startup preference is remembered during an upgrade. Releases are currently unsigned; code signing and automatic updates are not configured.
 
@@ -16,9 +16,13 @@ The MSI can be installed with `STARTUPENABLED=0` to opt out initially. An existi
 
 Choose **Customize keyboard shortcuts** in the panel. Select an action's shortcut field, then press the new combination. All seventeen actions are editable, grouped by category. Include **Ctrl** or **Alt**; **Shift** is optional. Letters, number-row digits, function keys (except reserved F12), arrows, Space, Home, End, Page Up/Down, Insert, and Delete are supported. Windows-key combinations are excluded. Tab moves between fields and Esc cancels the editor.
 
-KeyTile pauses its shortcuts while the editor is open. **Save shortcuts** checks the complete set for duplicates and conflicts with other apps, then saves and applies it. A failed validation or save keeps the previous shortcuts. **Cancel** discards the draft. **Restore defaults** changes the draft; save to apply the defaults or cancel to keep your choices. Closing the editor restores the previous active or paused state.
+Each action has an **Enabled** checkbox. Uncheck it and save to stop that shortcut and free its key combination for other apps. Its combination stays saved; check Enabled again to restore it. Disabled actions display **Disabled** in the main panel. Disabling every action shows **ALL OFF** instead of a conflict warning. Global Pause/Resume respects these individual choices.
+
+KeyTile pauses its shortcuts while the editor is open. **Save shortcuts** checks enabled actions for duplicates and conflicts with other apps, then saves and applies the choices. Re-enabling a shortcut checks its combination again. A failed validation or save keeps the previous shortcuts. **Cancel** discards the draft. **Restore defaults** resets the combinations and enables all seventeen actions in the draft; save to apply the defaults or cancel to keep your choices. Closing the editor restores the previous active or paused state.
 
 Choices are saved in `%LOCALAPPDATA%\KeyTile\shortcuts.json`, survive restarts and installer upgrades, and are shared by copies run under the same Windows account. Uninstall leaves this personal settings file in place. A missing file uses defaults; an invalid or unreadable file shows a notice and uses defaults without overwriting that file. Saving a valid set from the editor replaces it. The tables below list the default shortcuts; the panel always displays your current choices.
+
+Profiles from 0.3.0 keep their custom combinations with every action enabled. Saving uses profile version 2 to include each action's enabled state; loading an older profile alone does not rewrite it.
 
 ## Basics
 

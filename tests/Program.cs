@@ -83,7 +83,9 @@ internal static partial class Program
             TestPlacementGeometry();
             TestStartup();
             TestShortcutSettings();
+            TestIndividualShortcutSettings();
             TestCustomHotkeys();
+            TestIndividualHotkeys();
             TestHotkeyLifecycle();
             RunNativeTestsAsync().GetAwaiter().GetResult();
             Console.WriteLine($"PASS: {_passed} checks completed.");

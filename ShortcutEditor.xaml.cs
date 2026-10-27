@@ -13,14 +13,23 @@ internal sealed class ShortcutRow : INotifyPropertyChanged
     internal HotkeyBinding Binding { get; private set; }
     public string Name => ShortcutSettings.ActionName(Binding.Action);
     public string AccessibleName => $"Shortcut for {Name}";
+    public string EnabledAccessibleName => $"Enable shortcut for {Name}";
     public string Label => Binding.Label;
+    public bool Enabled
+    {
+        get => Binding.Enabled;
+        set { if (value != Binding.Enabled) SetBinding(Binding with { Enabled = value }); }
+    }
     public string CategoryHeader { get; }
     public event PropertyChangedEventHandler? PropertyChanged;
+    internal event Action? Changed;
     internal ShortcutRow(HotkeyBinding binding, string categoryHeader) => (Binding, CategoryHeader) = (binding, categoryHeader);
     internal void SetBinding(HotkeyBinding binding)
     {
         Binding = binding with { Label = ShortcutSettings.Format(binding.Key, binding.Modifiers) };
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Label)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Enabled)));
+        Changed?.Invoke();
     }
 }
 
@@ -37,6 +46,7 @@ public partial class ShortcutEditor : UserControl
         {
             1 => "Basics", 5 => "Corners", 9 => "Thirds", 14 => "Window Placement", _ => ""
         })).ToArray();
+        foreach (ShortcutRow row in _rows) row.Changed += ValidateDraft;
         ShortcutRows.ItemsSource = _rows;
     }
 
@@ -57,6 +67,18 @@ public partial class ShortcutEditor : UserControl
             ShortcutSettings.ValidateCombination(nativeKey, nativeModifiers);
             var row = (ShortcutRow)((TextBox)sender).Tag;
             row.SetBinding(row.Binding with { Key = nativeKey, Modifiers = nativeModifiers });
+        }
+        catch (ArgumentException error)
+        {
+            ErrorText.Text = error.Message;
+            SaveButton.IsEnabled = false;
+        }
+    }
+
+    private void ValidateDraft()
+    {
+        try
+        {
             ShortcutSettings.Validate(_rows.Select(item => item.Binding).ToArray());
             ErrorText.Text = "";
             SaveButton.IsEnabled = true;

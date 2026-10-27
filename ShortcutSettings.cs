@@ -8,7 +8,7 @@ namespace KeyTile;
 
 internal sealed class ShortcutSettings
 {
-    private sealed record Entry(string Action, uint Key, uint Modifiers);
+    private sealed record Entry(string Action, uint Key, uint Modifiers, bool? Enabled = null);
     private sealed record Profile(int Version, Entry[]? Shortcuts);
     private readonly string _path;
     internal ShortcutSettings(string? path = null) => _path = path ?? Path.Combine(
@@ -19,7 +19,7 @@ internal sealed class ShortcutSettings
         if (!File.Exists(_path)) return Validate(HotkeyManager.Bindings);
         if (new FileInfo(_path).Length > 65536) throw new InvalidDataException("Shortcut settings are too large.");
         Profile? profile = JsonSerializer.Deserialize<Profile>(File.ReadAllText(_path));
-        if (profile is not { Version: 1, Shortcuts: not null })
+        if (profile is not { Version: 1 or 2, Shortcuts: not null })
             throw new InvalidDataException("Unsupported shortcut settings format.");
         var bindings = new List<HotkeyBinding>();
         foreach (Entry entry in profile.Shortcuts)
@@ -27,7 +27,9 @@ internal sealed class ShortcutSettings
             if (entry is null) throw new InvalidDataException("Missing shortcut action.");
             HotkeyBinding? original = HotkeyManager.Bindings.FirstOrDefault(b => b.Action.ToString() == entry.Action);
             if (original is null) throw new InvalidDataException("Unknown shortcut action.");
-            bindings.Add(original with { Key = entry.Key, Modifiers = entry.Modifiers });
+            bool enabled = entry.Enabled ?? (profile.Version == 1 ? true
+                : throw new InvalidDataException("Missing shortcut enabled state."));
+            bindings.Add(original with { Key = entry.Key, Modifiers = entry.Modifiers, Enabled = enabled });
         }
         return Validate(bindings);
     }
@@ -40,7 +42,7 @@ internal sealed class ShortcutSettings
         string temporary = Path.Combine(folder, $"shortcuts-{Guid.NewGuid():N}.tmp");
         try
         {
-            string json = JsonSerializer.Serialize(new Profile(1, validated.Select(b => new Entry(b.Action.ToString(), b.Key, b.Modifiers)).ToArray()),
+            string json = JsonSerializer.Serialize(new Profile(2, validated.Select(b => new Entry(b.Action.ToString(), b.Key, b.Modifiers, b.Enabled)).ToArray()),
                 new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(temporary, json);
             File.Move(temporary, _path, true);
@@ -64,8 +66,8 @@ internal sealed class ShortcutSettings
             if (original is null || binding.Id != original.Id || !actions.Add(binding.Action))
                 throw new ArgumentException("Each action must appear exactly once.");
             ValidateCombination(binding.Key, binding.Modifiers);
-            if (!combinations.Add((binding.Key, binding.Modifiers)))
-                throw new ArgumentException($"{Format(binding.Key, binding.Modifiers)} is assigned to more than one action.");
+            if (binding.Enabled && !combinations.Add((binding.Key, binding.Modifiers)))
+                throw new ArgumentException($"{Format(binding.Key, binding.Modifiers)} is assigned to more than one enabled action.");
         }
         return HotkeyManager.Bindings.Select(original =>
         {

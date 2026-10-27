@@ -32,6 +32,7 @@
     <StackPanel Margin="0,0,0,12">
       <TextBlock Text="Your shortcuts" FontSize="24" FontWeight="SemiBold" />
       <TextBlock Text="Select a shortcut field, then press a combination with Ctrl or Alt. Shift is optional." Foreground="#A5B7C3" Margin="0,8,0,0" TextWrapping="Wrap" />
+      <TextBlock Text="Uncheck Enabled to free a shortcut while keeping its combination saved." Foreground="#A5B7C3" Margin="0,6,0,0" TextWrapping="Wrap" />
       <TextBlock Text="Shortcuts are paused while this editor is open. Tab moves between fields; Esc cancels." Foreground="#A5B7C3" Margin="0,6,0,0" TextWrapping="Wrap" />
     </StackPanel>
     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -42,9 +43,14 @@
               <TextBlock.Style><Style TargetType="TextBlock"><Style.Triggers><DataTrigger Binding="{Binding CategoryHeader}" Value=""><Setter Property="Visibility" Value="Collapsed" /></DataTrigger></Style.Triggers></Style></TextBlock.Style>
             </TextBlock>
             <Grid Margin="0,0,12,8">
-              <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
-              <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Margin="0,0,10,0" TextWrapping="Wrap" />
-              <TextBox Grid.Column="1" Text="{Binding Label, Mode=OneWay}" Tag="{Binding}"
+              <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
+              <StackPanel Margin="0,0,10,0" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Name}" TextWrapping="Wrap" />
+                <CheckBox Content="Enabled" Foreground="#A5B7C3" Margin="0,5,0,0"
+                          IsChecked="{Binding Enabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          AutomationProperties.Name="{Binding EnabledAccessibleName}" />
+              </StackPanel>
+              <TextBox Grid.Column="1" Text="{Binding Label, Mode=OneWay}" Tag="{Binding}" IsEnabled="{Binding Enabled}" VerticalAlignment="Center"
                        AutomationProperties.Name="{Binding AccessibleName}"
                        ToolTip="Select this field and press the new shortcut" PreviewKeyDown="Capture_KeyDown" />
             </Grid>

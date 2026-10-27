@@ -56,7 +56,7 @@ public partial class MainWindow : Window
 
     internal void UpdateShortcuts(bool enabled, IReadOnlyList<HotkeyStatus> statuses)
     {
-        int available = 0;
+        int available = 0, requested = 0;
         foreach (HotkeyStatus status in statuses)
         {
             if (FindName($"{status.Binding.Action}Shortcut") is TextBlock shortcut) shortcut.Text = status.Binding.Label;
@@ -73,13 +73,14 @@ public partial class MainWindow : Window
                 WindowAction.ResizeMedium => ResizeMediumStatus, WindowAction.ResizeLarge => ResizeLargeStatus,
                 _ => throw new ArgumentOutOfRangeException(nameof(statuses))
             };
-            label.Text = !enabled ? "Paused" : status.Registered ? "Ready" : $"Unavailable · error {status.Error}";
+            label.Text = !status.Binding.Enabled ? "Disabled" : !enabled ? "Paused" : status.Registered ? "Ready" : $"Unavailable · error {status.Error}";
             label.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(
-                enabled && !status.Registered ? "#FFBD89" : "#90A7B7"));
+                enabled && status.Binding.Enabled && !status.Registered ? "#FFBD89" : "#90A7B7"));
+            if (status.Binding.Enabled) requested++;
             if (status.Registered) available++;
         }
-        bool allAvailable = available == HotkeyManager.Bindings.Length;
-        StatusBadge.Text = !enabled ? "PAUSED" : allAvailable ? "ACTIVE" : "CONFLICT";
+        bool allAvailable = available == requested;
+        StatusBadge.Text = !enabled ? "PAUSED" : requested == 0 ? "ALL OFF" : allAvailable ? "ACTIVE" : "CONFLICT";
         StatusBadge.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(
             enabled && allAvailable ? "#71E6C0" : "#FFBD89"));
         PauseButton.Content = enabled ? "Pause shortcuts" : "Resume shortcuts";

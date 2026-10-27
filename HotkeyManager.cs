@@ -7,7 +7,7 @@ using System.Windows.Interop;
 namespace KeyTile;
 
 internal sealed record HotkeyBinding(int Id, WindowAction Action, uint Key, string Label,
-    uint Modifiers = NativeMethods.ModControl | NativeMethods.ModAlt);
+    uint Modifiers = NativeMethods.ModControl | NativeMethods.ModAlt, bool Enabled = true);
 internal sealed record HotkeyStatus(HotkeyBinding Binding, bool Registered, int Error);
 
 internal sealed class HotkeyManager : IDisposable
@@ -55,16 +55,17 @@ internal sealed class HotkeyManager : IDisposable
         var statuses = new List<HotkeyStatus>();
         foreach (HotkeyBinding binding in _bindings)
         {
-            bool registered = enabled && NativeMethods.RegisterHotKey(_source.Handle, binding.Id,
+            bool requested = enabled && binding.Enabled;
+            bool registered = requested && NativeMethods.RegisterHotKey(_source.Handle, binding.Id,
                 binding.Modifiers | NativeMethods.ModNoRepeat, binding.Key);
-            int error = enabled && !registered ? Marshal.GetLastWin32Error() : 0;
+            int error = requested && !registered ? Marshal.GetLastWin32Error() : 0;
             if (registered) _registered.Add(binding.Id);
             statuses.Add(new(binding, registered, error));
         }
         return statuses;
     }
 
-    // Probe all combinations before persistence; failures restore the previous bindings and pause state.
+    // Probe enabled combinations before persistence; failures restore previous bindings and pause state.
     internal bool TryUpdateBindings(IReadOnlyList<HotkeyBinding> bindings, Action persist, out IReadOnlyList<HotkeyStatus> statuses)
     {
         HotkeyBinding[] candidate = ShortcutSettings.Validate(bindings);
@@ -76,7 +77,7 @@ internal sealed class HotkeyManager : IDisposable
         try
         {
             statuses = SetEnabled(true);
-            if (statuses.Any(status => !status.Registered)) return false;
+            if (statuses.Any(status => status.Binding.Enabled && !status.Registered)) return false;
             persist();
             accepted = true;
             return true;

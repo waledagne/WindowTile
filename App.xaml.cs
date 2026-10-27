@@ -94,7 +94,8 @@ public partial class App : Application
         _panel?.UpdateShortcuts(active, statuses);
         if (_pauseMenu is not null) _pauseMenu.Text = _enabled ? "Pause shortcuts" : "Resume shortcuts";
         if (_tray is not null) _tray.Text = !active ? "KeyTile · paused"
-            : statuses.All(x => x.Registered) ? "KeyTile · shortcuts active" : "KeyTile · shortcut conflict";
+            : statuses.All(x => !x.Binding.Enabled) ? "KeyTile · all shortcuts disabled"
+            : statuses.All(x => !x.Binding.Enabled || x.Registered) ? "KeyTile · shortcuts active" : "KeyTile · shortcut conflict";
     }
 
     internal void CustomizeShortcuts()
@@ -128,7 +129,7 @@ public partial class App : Application
         {
             if (!_hotkeys.TryUpdateBindings(bindings, () => _shortcutSettings.Save(bindings), out var statuses))
             {
-                message = "Unavailable: " + string.Join(", ", statuses.Where(status => !status.Registered)
+                message = "Unavailable: " + string.Join(", ", statuses.Where(status => status.Binding.Enabled && !status.Registered)
                     .Select(status => $"{ShortcutSettings.ActionName(status.Binding.Action)} ({status.Binding.Label})"))
                     + ". Close the app using those keys or choose another combination.";
                 return false;
