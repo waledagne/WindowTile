@@ -1,0 +1,60 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="KeyTile" Manufacturer="KeyTile" Version="$(var.AppVersion)" Language="1033"
+           UpgradeCode="7C74C5FA-9C51-4CAC-B33B-96F7F2AE197C" Scope="perUser" InstallerVersion="500">
+    <MajorUpgrade DowngradeErrorMessage="A newer version of KeyTile is already installed." AllowSameVersionUpgrades="yes" Schedule="afterInstallExecute" />
+    <!-- The executable already compresses its runtime bundle. -->
+    <MediaTemplate EmbedCab="yes" CompressionLevel="none" />
+    <Launch Condition="Installed OR VersionNT64" Message="KeyTile requires 64-bit Windows." />
+    <Icon Id="KeyTile.ico" SourceFile="$(var.ProjectDir)\Assets\KeyTile.ico" />
+    <Property Id="ARPPRODUCTICON" Value="KeyTile.ico" />
+    <Property Id="ARPNOMODIFY" Value="1" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/waledagne/WindowTile" />
+    <Property Id="INSTALLFOLDER">
+      <RegistrySearch Id="RememberInstallFolder" Root="HKCU" Key="Software\KeyTile" Name="InstallFolder" Type="raw" />
+    </Property>
+    <Property Id="STARTUPENABLED" Secure="yes" />
+    <Property Id="INITIALSTARTUP">
+      <RegistrySearch Id="RememberInitialStartup" Root="HKCU" Key="Software\KeyTile" Name="InitialStartup" Type="raw" />
+    </Property>
+    <SetProperty Id="STARTUPENABLED" Value="[INITIALSTARTUP]" After="AppSearch" Sequence="both" Condition="STARTUPENABLED = &quot;&quot; AND INITIALSTARTUP" />
+    <SetProperty Id="STARTUPENABLED" Value="1" After="SetSTARTUPENABLED" Action="DefaultStartup" Sequence="both" Condition="STARTUPENABLED = &quot;&quot;" />
+    <StandardDirectory Id="LocalAppDataFolder">
+      <Directory Id="UserProgramsFolder" Name="Programs">
+        <Directory Id="INSTALLFOLDER" Name="KeyTile">
+          <Component Id="Application" Guid="BDD54EDC-B204-44E5-99A9-19F5B619B013">
+            <File Id="KeyTileExe" Source="$(var.PublishDir)\KeyTile.exe">
+              <Shortcut Id="StartMenuShortcut" Directory="ApplicationProgramsFolder" Name="KeyTile"
+                        WorkingDirectory="INSTALLFOLDER" Icon="KeyTile.ico" Advertise="no" />
+              <Shortcut Id="DesktopShortcut" Directory="DesktopFolder" Name="KeyTile"
+                        WorkingDirectory="INSTALLFOLDER" Icon="KeyTile.ico" Advertise="no" />
+            </File>
+            <File Source="$(var.PublishDir)\README.md" />
+            <File Source="$(var.PublishDir)\VERIFICATION.md" />
+            <File Source="$(var.PublishDir)\DOTNET-LICENSE.txt" />
+            <File Source="$(var.PublishDir)\DOTNET-NOTICES.txt" />
+            <RegistryValue Root="HKCU" Key="Software\KeyTile" Name="Installed" Type="integer" Value="1" KeyPath="yes" />
+            <RegistryValue Root="HKCU" Key="Software\KeyTile" Name="InstallFolder" Type="string" Value="[INSTALLFOLDER]" />
+            <RegistryValue Root="HKCU" Key="Software\KeyTile" Name="InitialStartup" Type="string" Value="[STARTUPENABLED]" />
+            <RemoveFile Id="RemoveStartupShortcut" Directory="StartupFolder" Name="KeyTile.lnk" On="uninstall" />
+            <RemoveFolder Id="RemoveStartMenuFolder" Directory="ApplicationProgramsFolder" On="uninstall" />
+            <RemoveFolder Id="RemoveInstallFolder" Directory="INSTALLFOLDER" On="uninstall" />
+          </Component>
+        </Directory>
+      </Directory>
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ApplicationProgramsFolder" Name="KeyTile" />
+    </StandardDirectory>
+    <StandardDirectory Id="DesktopFolder" />
+    <StandardDirectory Id="StartupFolder">
+      <Component Id="SignInStartup" Guid="AFC3BB08-D8ED-47B9-91FA-F1E7713945EE" Condition="STARTUPENABLED = 1" NeverOverwrite="yes">
+        <Shortcut Id="SignInShortcut" Name="KeyTile" Target="[#KeyTileExe]" Arguments="--tray" WorkingDirectory="INSTALLFOLDER" Icon="KeyTile.ico" Advertise="no" />
+        <RegistryValue Root="HKCU" Key="Software\KeyTile" Name="StartupShortcutInstalled" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </StandardDirectory>
+    <Feature Id="Main" Title="KeyTile" Level="1">
+      <ComponentRef Id="Application" />
+      <ComponentRef Id="SignInStartup" />
+    </Feature>
+  </Package>
+</Wix>

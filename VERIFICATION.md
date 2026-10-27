@@ -1,6 +1,17 @@
-# Verification — 18 October 2026
+# Verification — 27 October 2026
 
-Release build: KeyTile 0.1.0, C# / WPF, net10.0-windows.
+Current release: KeyTile 0.2.0, C# / WPF, net10.0-windows, Windows x64.
+
+## Installation and sign-in startup
+
+- All 175 application checks passed, including startup path validation, quiet tray arguments, enable/disable, long-path rejection, and preserving other apps' or another KeyTile copy's shortcuts. Startup tests use an isolated temporary folder.
+- Standalone publishing bundles the .NET runtime and WPF native libraries in `KeyTile.exe`. MSI and portable ZIP builds include runtime license notices and SHA-256 hashes.
+- The installer targets the current user's `%LOCALAPPDATA%\Programs\KeyTile`, creates desktop and Start menu shortcuts, and adds a Windows Startup-folder shortcut for `KeyTile.exe --tray`. The startup checkbox controls the current executable's shortcut.
+- Installer lifecycle checks cover deployment to a path containing spaces, both app shortcuts, startup target/arguments, loading bundled WPF libraries without a project or machine-wide runtime, quiet duplicate launches, repair with startup on/off, initial opt-out and its repair, and uninstall cleanup after enabling startup following an opt-out.
+- A second `--tray` launch exits quietly without reopening the existing panel.
+- Final UI check on 27 October: the installed app displays the startup checkbox correctly. Turning it off removes the Startup-folder shortcut; turning it on restores the installed executable with `--tray`. Hide to tray keeps one hidden instance running, a duplicate tray launch stays quiet, and a normal launch reopens the existing panel.
+
+Earlier feature increments below describe their original 0.1.0 builds.
 
 ## Window Placement increment
 

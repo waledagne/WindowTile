@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
+using System.Security;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -10,11 +13,45 @@ namespace KeyTile;
 public partial class MainWindow : Window
 {
     private readonly App _app;
+    private bool _updatingStartup;
     internal MainWindow(App app)
     {
         InitializeComponent();
         _app = app;
+        Activated += (_, _) => RefreshStartup();
+        RefreshStartup();
         StateChanged += (_, _) => { if (WindowState == WindowState.Minimized) Hide(); };
+    }
+
+    private static StartupManager Startup() => new(Environment.ProcessPath
+        ?? throw new InvalidOperationException("Could not find this app's executable path."));
+
+    private void RefreshStartup()
+    {
+        _updatingStartup = true;
+        try { StartupCheckBox.IsChecked = Startup().IsEnabled; StartupCheckBox.IsEnabled = true; }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException or SecurityException or ArgumentException or InvalidOperationException or COMException)
+        {
+            StartupCheckBox.IsEnabled = false;
+            SetActivity($"Could not read startup settings: {error.Message}");
+        }
+        finally { _updatingStartup = false; }
+    }
+
+    private void Startup_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_updatingStartup) return;
+        bool enabled = StartupCheckBox.IsChecked == true;
+        try
+        {
+            Startup().SetEnabled(enabled);
+            SetActivity(enabled ? "KeyTile will start quietly in the tray when you sign in." : "KeyTile will no longer start at sign-in.");
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException or SecurityException or ArgumentException or InvalidOperationException or COMException)
+        {
+            SetActivity($"Could not change startup settings: {error.Message}");
+        }
+        RefreshStartup();
     }
 
     internal void UpdateShortcuts(bool enabled, IReadOnlyList<HotkeyStatus> statuses)

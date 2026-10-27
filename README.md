@@ -2,6 +2,16 @@
 
 A C# / WPF window manager prototype for Windows 11. It moves the focused app window using seventeen global keyboard shortcuts, organized into **Basics**, **Corners**, **Thirds**, and **Window Placement** tabs. All shortcuts stay active regardless of the selected tab. The executable and tray app are currently named **KeyTile**.
 
+## Install and start automatically
+
+Open `artifacts\release\KeyTile-0.2.0-win-x64.msi` to install KeyTile for your Windows account. The installer includes the .NET runtime, adds desktop and Start menu shortcuts, and installs to `%LOCALAPPDATA%\Programs\KeyTile`. You do not need the source folder, an SDK, or a separate .NET installation to run the installed app.
+
+Installation enables quiet tray startup at sign-in. Open KeyTile from its shortcut to see the panel. Use **Start KeyTile when I sign in** in the panel to turn startup on or off. To uninstall, exit KeyTile from its panel or tray menu, then use **Settings → Apps → Installed apps → KeyTile → Uninstall**. Uninstall removes the app, shortcuts, and startup entry.
+
+The portable alternative is `artifacts\release\KeyTile-0.2.0-win-x64-portable.zip`; extract it to a permanent folder and open `KeyTile.exe`. A portable copy starts automatically only if you enable the checkbox. Keep it in that folder while startup is enabled. If Windows Startup apps settings disables KeyTile, re-enable it there as well.
+
+The MSI can be installed with `STARTUPENABLED=0` to opt out initially. An existing startup preference is remembered during an upgrade. Releases are currently unsigned; code signing and automatic updates are not configured.
+
 ## Basics
 
 | Shortcut | Action |
@@ -78,7 +88,7 @@ Focus another app, then press a shortcut. KeyTile ignores its own panel. Closing
 
 **Pause shortcuts** releases the keys for other apps. Resume registers them again. If another app already owns a shortcut, its row shows **Unavailable**. Close or reconfigure the competing app, then pause and resume to retry. Launching KeyTile again opens the existing instance.
 
-This prototype does not register itself to start at sign-in or change Windows Snap settings. Published builds go to `artifacts\app`.
+The startup checkbox creates or removes a `KeyTile.lnk` shortcut in the current user's Windows Startup folder, targeting this executable with `--tray`. KeyTile does not change Windows Snap settings. Development builds go to `artifacts\app`; standalone releases and installers go to `artifacts\release`.
 
 ## Restore behavior
 
@@ -93,6 +103,8 @@ Run these commands from the project folder. Exit KeyTile using its **Exit** butt
 | `.\Build.ps1` | Build, run all checks, and publish to `artifacts\app` |
 | `.\Test.ps1` | Run the checks separately |
 | `.\Run.ps1` | Run the published app |
+| `.\Build-Release.ps1` | Run checks and create a standalone executable, portable ZIP, MSI installer, and SHA-256 hashes |
+| `.\Test-Installer.ps1` | Test installation, standalone tray launch, and uninstall cleanup; requires no existing KeyTile installation |
 
 For source development and ordinary SDK commands, use the local wrapper:
 
@@ -108,6 +120,8 @@ The verification program opens temporary WPF and WinForms test windows, checks t
 
 The SDK version is pinned by `global.json`. The scripts set runtime paths, CLI state, and package-cache paths for their current process and children; they do not change machine or user environment settings. `.tools`, `artifacts`, `bin`, and `obj` are ignored by Git. No third-party NuGet packages are used.
 
+Release packaging installs the pinned WiX 6.0.2 tool into `.tools\wix` on first use and downloads the Windows x64 runtime packs as needed. These downloads require Internet access on the build machine; the resulting installer and app run offline. `Build-Release.ps1 -SkipTests` rebuilds packages without repeating the checks. `Test-Installer.ps1` temporarily installs to a unique folder under `artifacts\installer-smoke`, verifies behavior without the development runtime environment, and uninstalls that test copy. It refuses to run when KeyTile is already installed, running, or registered for startup.
+
 ## Implementation
 
 - `WindowManager.cs`: layout calculations, per-window snapshots, native state changes, bounded asynchronous verification.
@@ -115,6 +129,8 @@ The SDK version is pinned by `global.json`. The scripts set runtime paths, CLI s
 - `NativeMethods.cs`: Win32 / DWM interop.
 - `App.xaml.cs`: application lifetime, single-instance signaling, pause/resume, and tray controls.
 - `MainWindow.xaml`: WPF shortcut panel and live status.
+- `StartupManager.cs`: current-user Startup-folder shortcuts, executable-path validation, and startup enable/disable.
+- `Build-Release.ps1` and `installer/Package.wxs`: self-contained Windows x64 release and per-user MSI packaging.
 - `tests/`: dependency-free geometry, hotkey lifecycle, and real-window integration checks.
 
 Monitor work areas exclude the taskbar. The manifest enables Per Monitor V2 DPI awareness, and DWM frame measurements compensate for invisible resize borders. WINDOWPLACEMENT snapshots are restored with SetWindowPlacement so workspace coordinates are preserved.

@@ -81,12 +81,52 @@ internal static class Program
             TestGeometry();
             TestThirdGeometry();
             TestPlacementGeometry();
+            TestStartup();
             TestHotkeyLifecycle();
             RunNativeTestsAsync().GetAwaiter().GetResult();
             Console.WriteLine($"PASS: {_passed} checks completed.");
             return 0;
         }
         catch (Exception error) { Console.Error.WriteLine($"FAIL: {error}"); return 1; }
+    }
+
+    private static void TestStartup()
+    {
+        const string executable = @"C:\Apps\Key Tile\KeyTile.exe";
+        string folder = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "KeyTile.Tests-" + Guid.NewGuid().ToString("N"));
+        System.IO.Directory.CreateDirectory(folder);
+        string shortcut = System.IO.Path.Combine(folder, "KeyTile.lnk");
+        string otherFile = System.IO.Path.Combine(folder, "OtherApp.txt");
+        try
+        {
+            var startup = new StartupManager(executable, folder);
+            Check(StartupManager.BuildCommand(executable) == "\"C:\\Apps\\Key Tile\\KeyTile.exe\" --tray", "Startup validates paths with spaces and quiet tray mode");
+            Check(!startup.IsEnabled, "Startup is off before registration");
+            startup.SetEnabled(true);
+            Check(startup.IsEnabled, "Startup shortcut target and tray arguments can be read back");
+            startup.SetEnabled(true);
+            Check(System.IO.Directory.GetFiles(folder).Length == 1, "Repeated startup enable does not add duplicate shortcuts");
+            System.IO.File.WriteAllText(otherFile, "leave this file alone");
+            startup.SetEnabled(false);
+            Check(!startup.IsEnabled && !System.IO.File.Exists(shortcut), "Startup can be disabled by removing its shortcut");
+            Check(System.IO.File.ReadAllText(otherFile) == "leave this file alone", "Disabling startup preserves other apps");
+            var otherCopy = new StartupManager(@"C:\Installed\KeyTile.exe", folder);
+            otherCopy.SetEnabled(true);
+            startup.SetEnabled(false);
+            Check(otherCopy.IsEnabled, "Disabling a different copy preserves the installed copy's startup shortcut");
+            bool rejected = false;
+            try { StartupManager.BuildCommand("C:\\" + new string('x', 260) + "\\KeyTile.exe"); }
+            catch (ArgumentException) { rejected = true; }
+            Check(rejected && otherCopy.IsEnabled, "Overlong startup commands are rejected without changing registration");
+            otherCopy.SetEnabled(false);
+            Check(!otherCopy.IsEnabled, "The owning copy can remove its startup shortcut");
+        }
+        finally
+        {
+            System.IO.File.Delete(shortcut);
+            System.IO.File.Delete(otherFile);
+            System.IO.Directory.Delete(folder);
+        }
     }
 
     private static void TestGeometry()

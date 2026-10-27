@@ -27,8 +27,11 @@ public partial class App : Application
         _instance = new Mutex(true, @"Local\KeyTile.Prototype.Instance", out bool first);
         if (!first)
         {
-            try { using var signal = EventWaitHandle.OpenExisting(@"Local\KeyTile.Prototype.Show"); signal.Set(); }
-            catch (WaitHandleCannotBeOpenedException) { }
+            if (!e.Args.Contains("--tray", StringComparer.OrdinalIgnoreCase))
+            {
+                try { using var signal = EventWaitHandle.OpenExisting(@"Local\KeyTile.Prototype.Show"); signal.Set(); }
+                catch (WaitHandleCannotBeOpenedException) { }
+            }
             Shutdown();
             return;
         }
